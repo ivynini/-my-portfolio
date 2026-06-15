@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>丁羽微的作品集</title>
+    <style>
+        :root { --bg: #1a1410; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            height: 500vh;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            font-family: 'Georgia', 'Noto Serif SC', 'STSong', serif;
+            cursor: default;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ---- Header ---- */
+        .header {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 28px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #e8d5c0;
+            letter-spacing: 0.06em;
+            text-shadow: 0 0 30px rgba(180,140,100,0.5);
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 32px;
+            pointer-events: auto;
+        }
+
+        .nav-btn {
+            position: relative;
+            display: inline-block;
+            font-size: 0.95rem;
+            font-family: 'Georgia', 'Noto Serif SC', serif;
+            color: #c8b89a;
+            text-decoration: none;
+            letter-spacing: 0.08em;
+            text-transform: lowercase;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1),
+                        color 0.35s ease;
+        }
+
+        .nav-btn:hover {
+            color: #f0e0c8;
+            transform: translateY(-4px) scale(1.12);
+        }
+
+        .nav-btn::after {
+            content: '';
+            position: absolute;
+            left: 0; bottom: -4px;
+            width: 0; height: 1px;
+            background: #c8b89a;
+            transition: width 0.35s ease;
+        }
+
+        .nav-btn:hover::after {
+            width: 100%;
+        }
+
+        /* ---- Scroll hint ---- */
+        .scroll-hint {
+            position: fixed;
+            bottom: 32px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            pointer-events: none;
+            transition: opacity 0.6s;
+        }
+
+        .scroll-hint span {
+            font-size: 0.7rem;
+            color: #8a7a6a;
+            letter-spacing: 0.12em;
+        }
+
+        .scroll-arrow {
+            width: 20px; height: 20px;
+            border-right: 1px solid #8a7a6a;
+            border-bottom: 1px solid #8a7a6a;
+            transform: rotate(45deg);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.3; transform: rotate(45deg) translateY(0); }
+            50%      { opacity: 1;   transform: rotate(45deg) translateY(6px); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="logo">丁羽微的作品集</div>
+        <nav class="nav">
+            <a href="#" class="nav-btn" data-text="project">project</a>
+            <a href="#" class="nav-btn" data-text="about">about</a>
+            <a href="#" class="nav-btn" data-text="contact">contact</a>
+        </nav>
+    </header>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="scroll-hint" id="scrollHint">
+        <span>下滑探索</span>
+        <div class="scroll-arrow"></div>
+    </div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // ============ DOM ============
+        const canvas = document.getElementById('canvas');
+        const scrollHint = document.getElementById('scrollHint');
+
+        // ============ Renderer ============
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.2;
+
+        // ============ Scene & Camera ============
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color('#1a1410');
+        scene.fog = new THREE.Fog('#1a1410', 5, 20);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 50);
+        const cameraBase = { x: 0, y: 0.6, z: 7.5 };
+        camera.position.set(cameraBase.x, cameraBase.y, cameraBase.z);
+        camera.lookAt(0, -0.2, 0);
+
+        // ============ Lighting ============
+        scene.add(new THREE.AmbientLight('#3a2a1a', 1.8));
+
+        const sunLight = new THREE.DirectionalLight('#fff8e8', 5.5);
+        sunLight.position.set(5, 8, 4);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 30;
+        sunLight.shadow.camera.left = -8;
+        sunLight.shadow.camera.right = 8;
+        sunLight.shadow.camera.top = 8;
+        sunLight.shadow.camera.bottom = -8;
+        sunLight.shadow.bias = -0.0001;
+        sunLight.shadow.normalBias = 0.02;
+        scene.add(sunLight);
+
+        const rimLight = new THREE.DirectionalLight('#8899cc', 1.5);
+        rimLight.position.set(-3, 1, -4);
+        scene.add(rimLight);
+
+        const bounceLight = new THREE.DirectionalLight('#5a4430', 1.2);
+        bounceLight.position.set(0, -1, 2);
+        scene.add(bounceLight);
+
+        // ============ Ground (shadow catcher) ============
+        const ground = new THREE.Mesh(
+            new THREE.PlaneGeometry(20, 20),
+            new THREE.ShadowMaterial({ opacity: 0.35 })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -3.5;
+        ground.receiveShadow = true;
+        scene.add(ground);
+
+        // ============ Procedural soil texture ============
+        function createSoilTexture() {
+            const size = 512;
+            const c = document.createElement('canvas');
+            c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+
+            const grad = ctx.createRadialGradient(size*0.3, size*0.3, size*0.05, size/2, size/2, size*0.55);
+            grad.addColorStop(0, '#8B7355');
+            grad.addColorStop(0.3, '#6B4226');
+            grad.addColorStop(0.6, '#5C3317');
+            grad.addColorStop(0.85, '#4A2A10');
+            grad.addColorStop(1, '#3B1F08');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, size, size);
+
+            const img = ctx.getImageData(0, 0, size, size);
+            const d = img.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const n = (Math.random() - 0.5) * 35;
+                d[i]     = Math.min(255, Math.max(0, d[i] + n));
+                d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n * 0.7));
+                d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n * 0.4));
+            }
+            ctx.putImageData(img, 0, 0);
+
+            for (let i = 0; i < 60; i++) {
+                const x = Math.random() * size, y = Math.random() * size;
+                const r = 3 + Math.random() * 12;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, 'rgba(0,0,0,0.3)');
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(x - r, y - r, r * 2, r * 2);
+            }
+
+            for (let i = 0; i < 200; i++) {
+                ctx.fillStyle = `rgba(180,150,120,${0.05 + Math.random() * 0.1})`;
+                ctx.fillRect(Math.random() * size, Math.random() * size, 2 + Math.random() * 4, 2 + Math.random() * 4);
+            }
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            return tex;
+        }
+
+        // ============ Dirt Sphere ============
+        const SPHERE_RADIUS = 1.8;
+        const sphereGeo = new THREE.SphereGeometry(SPHERE_RADIUS, 140, 140);
+        const positions = sphereGeo.attributes.position;
+        const vertexCount = positions.count;
+
+        function noise3D(x, y, z, freq, amp) {
+            return amp * (
+                Math.sin(x * freq + y * 1.3) * Math.cos(y * freq - z * 0.7) * Math.sin(z * freq + x * 0.9) +
+                Math.cos(x * freq * 1.7 - y * 0.6) * Math.sin(z * freq * 1.4 + x * 1.1) * Math.cos(y * freq * 0.8 + z * 1.5)
+            ) * 0.5;
+        }
+
+        for (let i = 0; i < vertexCount; i++) {
+            const x = positions.getX(i), y = positions.getY(i), z = positions.getZ(i);
+            const len = Math.sqrt(x * x + y * y + z * z);
+            const nx = x / len, ny = y / len, nz = z / len;
+
+            const displacement =
+                noise3D(nx, ny, nz, 4.5, 0.13) +
+                noise3D(nx, ny, nz, 9.0, 0.07) +
+                noise3D(nx, ny, nz, 16.0, 0.035) +
+                noise3D(nx, ny, nz, 24.0, 0.018);
+
+            const newLen = len + displacement;
+            positions.setXYZ(i, nx * newLen, ny * newLen, nz * newLen);
+        }
+        sphereGeo.computeVertexNormals();
+        sphereGeo.attributes.position.needsUpdate = true;
+
+        // Store surface data for grass placement
+        const surfacePoints = [];
+        const surfaceNormals = [];
+        const posAttr = sphereGeo.attributes.position;
+        const normAttr = sphereGeo.attributes.normal;
+        for (let i = 0; i < vertexCount; i++) {
+            surfacePoints.push(new THREE.Vector3(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i)));
+            surfaceNormals.push(new THREE.Vector3(normAttr.getX(i), normAttr.getY(i), normAttr.getZ(i)).normalize());
+        }
+
+        const sphere = new THREE.Mesh(sphereGeo, new THREE.MeshStandardMaterial({
+            map: createSoilTexture(),
+            roughness: 0.85,
+            metalness: 0.02,
+            color: new THREE.Color('#b8a080'),
+        }));
+        sphere.castShadow = true;
+        sphere.receiveShadow = true;
+        scene.add(sphere);
+
+        // ============ Surface pebbles ============
+        const pebbleGroup = new THREE.Group();
+        const pebbleGeo = new THREE.IcosahedronGeometry(0.03, 1);
+        const pebbleMat = new THREE.MeshStandardMaterial({ color: '#7a6a55', roughness: 0.7, metalness: 0.05 });
+
+        for (let i = 0; i < 200; i++) {
+            const idx = Math.floor(Math.random() * vertexCount);
+            const pos = surfacePoints[idx].clone();
+            const normal = surfaceNormals[idx].clone();
+            const s = 0.4 + Math.random() * 1.8;
+            pos.add(normal.clone().multiplyScalar(0.02 * s));
+
+            const pebble = new THREE.Mesh(pebbleGeo, pebbleMat);
+            pebble.position.copy(pos);
+            pebble.scale.setScalar(s);
+            pebble.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+            pebble.castShadow = true;
+            pebbleGroup.add(pebble);
+        }
+        sphere.add(pebbleGroup);
+
+        // ============ Grass System ============
+        const GRASS_COUNT = 5000;
+        const grassGroup = new THREE.Group();
+        sphere.add(grassGroup);
+
+        function createBladeGeo() {
+            const hw = 0.025, tw = 0.004, h = 1.0;
+            const verts = new Float32Array([
+                -hw,0,0,  hw,0,0, -tw,h,0,   hw,0,0,  tw,h,0, -tw,h,0,
+                 hw,0,0, -hw,0,0,  tw,h,0,  -hw,0,0, -tw,h,0,  tw,h,0,
+                 hw,0,0,  hw,0,-0.006, tw,h,-0.002,
+                -hw,0,-0.006, -hw,0,0, -tw,h,-0.002,
+            ]);
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+            geo.computeVertexNormals();
+            return geo;
+        }
+
+        const grassInstanced = new THREE.InstancedMesh(
+            createBladeGeo(),
+            new THREE.MeshStandardMaterial({ color: '#4a8c3f', roughness: 0.55, metalness: 0, side: THREE.DoubleSide }),
+            GRASS_COUNT
+        );
+        grassInstanced.castShadow = true;
+        grassInstanced.receiveShadow = true;
+
+        const grassData = [];
+        const dummy = new THREE.Object3D();
+        const quat = new THREE.Quaternion();
+        const upVec = new THREE.Vector3(0, 1, 0);
+        const _axis = new THREE.Vector3();
+        const _tiltQuat = new THREE.Quaternion();
+
+        for (let i = 0; i < GRASS_COUNT; i++) {
+            let idx;
+            const rnd = Math.random();
+            if (rnd < 0.65) {
+                idx = Math.floor(Math.random() * vertexCount);
+                while (surfacePoints[idx].y < -0.3 && Math.random() < 0.7) idx = Math.floor(Math.random() * vertexCount);
+            } else if (rnd < 0.9) {
+                idx = Math.floor(Math.random() * vertexCount);
+                while (Math.abs(surfacePoints[idx].y) > 1.0 && Math.random() < 0.6) idx = Math.floor(Math.random() * vertexCount);
+            } else {
+                idx = Math.floor(Math.random() * vertexCount);
+            }
+
+            const pos = surfacePoints[idx].clone();
+            const normal = surfaceNormals[idx].clone();
+            const bladeHeight = 0.12 + Math.random() * 0.45;
+            const threshold = Math.random() * 0.82;
+            const growthSpeed = 0.3 + Math.random() * 0.7;
+            const tilt = (Math.random() - 0.5) * 0.4;
+            const tiltDir = Math.random() * Math.PI * 2;
+
+            // Precompute the base quaternion (normal alignment + tilt)
+            quat.setFromUnitVectors(upVec, normal);
+            _axis.set(Math.cos(tiltDir), 0, Math.sin(tiltDir));
+            _tiltQuat.setFromAxisAngle(_axis, tilt);
+            quat.multiply(_tiltQuat);
+
+            grassData.push({
+                position: pos,
+                baseQuat: quat.clone(),
+                bladeHeight,
+                threshold,
+                growthSpeed,
+            });
+
+            dummy.position.copy(pos);
+            dummy.quaternion.copy(quat);
+            dummy.scale.set(0.8, 0.001, 0.8);
+            dummy.updateMatrix();
+            grassInstanced.setMatrixAt(i, dummy.matrix);
+        }
+        grassInstanced.instanceMatrix.needsUpdate = true;
+
+        const grassColor = new THREE.Color();
+        for (let i = 0; i < GRASS_COUNT; i++) {
+            grassColor.setHSL(
+                0.28 + (Math.random() - 0.5) * 0.08,
+                0.55 + (Math.random() - 0.5) * 0.3,
+                0.28 + (Math.random() - 0.5) * 0.25
+            );
+            grassInstanced.setColorAt(i, grassColor);
+        }
+        grassInstanced.instanceColor.needsUpdate = true;
+        grassGroup.add(grassInstanced);
+
+        // ============ Floating soil particles ============
+        const particlesGroup = new THREE.Group();
+        scene.add(particlesGroup);
+        const particleDataArr = [];
+
+        for (let i = 0; i < 150; i++) {
+            const mat = new THREE.MeshBasicMaterial({
+                color: new THREE.Color().setHSL(0.1, 0.3, 0.3 + Math.random() * 0.3),
+                transparent: true, opacity: 0.3 + Math.random() * 0.5,
+            });
+            const p = new THREE.Mesh(new THREE.SphereGeometry(0.015, 4, 4), mat);
+            const angle = Math.random() * Math.PI * 2;
+            const phi = (Math.random() - 0.5) * Math.PI;
+            const radius = 2.0 + Math.random() * 1.5;
+            p.position.set(
+                Math.cos(angle) * Math.cos(phi) * radius,
+                Math.sin(phi) * radius,
+                Math.sin(angle) * Math.cos(phi) * radius
+            );
+            p.userData = {
+                basePos: p.position.clone(),
+                speed: 0.2 + Math.random() * 0.6,
+                amplitude: 0.1 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2,
+                orbitSpeed: (Math.random() - 0.5) * 0.3,
+            };
+            particlesGroup.add(p);
+            particleDataArr.push(p);
+        }
+
+        // ============ State ============
+        let currentProgress = 0;
+        let currentRotation = 0;
+        let mouseX = 0, mouseY = 0;
+        let targetMouseX = 0, targetMouseY = 0;
+
+        function getScrollProgress() {
+            return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * 4)));
+        }
+
+        // ============ Update grass ============
+        function updateGrass(progress) {
+            for (let i = 0; i < GRASS_COUNT; i++) {
+                const gd = grassData[i];
+                let scale;
+                if (progress <= gd.threshold) {
+                    scale = 0.001;
+                } else if (progress >= gd.threshold + gd.growthSpeed) {
+                    scale = gd.bladeHeight;
+                } else {
+                    const t = (progress - gd.threshold) / gd.growthSpeed;
+                    const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                    scale = 0.001 + (gd.bladeHeight - 0.001) * eased;
+                }
+
+                dummy.position.copy(gd.position);
+                dummy.quaternion.copy(gd.baseQuat);
+                dummy.scale.set(0.8, Math.max(0.001, scale), 0.8);
+                dummy.updateMatrix();
+                grassInstanced.setMatrixAt(i, dummy.matrix);
+            }
+            grassInstanced.instanceMatrix.needsUpdate = true;
+        }
+
+        // ============ Mouse tracking ============
+        window.addEventListener('mousemove', (e) => {
+            targetMouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            targetMouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // ============ Animation loop ============
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const dt = Math.min(clock.getDelta(), 0.1);
+            const time = performance.now() * 0.001;
+
+            // Smooth scroll progress
+            const targetProgress = getScrollProgress();
+            currentProgress += (targetProgress - currentProgress) * 3.0 * dt;
+
+            // Smooth sphere rotation
+            const targetRotation = currentProgress * Math.PI * 3.0;
+            currentRotation += (targetRotation - currentRotation) * 2.5 * dt;
+            sphere.rotation.y = currentRotation;
+            sphere.rotation.x = Math.sin(currentRotation * 0.3) * 0.12;
+
+            // Grass
+            updateGrass(currentProgress);
+
+            // Floating particles
+            for (const p of particleDataArr) {
+                const ud = p.userData;
+                const bp = ud.basePos;
+                p.position.set(
+                    bp.x + Math.sin(time * ud.speed + ud.phase) * ud.amplitude,
+                    bp.y + Math.cos(time * ud.speed * 1.3 + ud.phase) * ud.amplitude,
+                    bp.z + Math.cos(time * ud.speed * 0.7 + ud.phase) * ud.amplitude
+                );
+                const angle = Math.atan2(p.position.z, p.position.x) + ud.orbitSpeed * dt;
+                const r = Math.sqrt(p.position.x ** 2 + p.position.z ** 2);
+                p.position.x = Math.cos(angle) * r;
+                p.position.z = Math.sin(angle) * r;
+            }
+
+            // Hide scroll hint
+            scrollHint.style.opacity = currentProgress > 0.05 ? Math.max(0, 1 - currentProgress * 10) : 1;
+
+            // Smooth mouse parallax on camera
+            mouseX += (targetMouseX - mouseX) * 2.5 * dt;
+            mouseY += (targetMouseY - mouseY) * 2.5 * dt;
+            camera.position.x = cameraBase.x + mouseX * 0.35;
+            camera.position.y = cameraBase.y + mouseY * 0.25;
+            camera.lookAt(0, -0.2, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // ============ Button scramble effect ============
+        const scrambleChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%&*?<>';
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            const originalText = btn.dataset.text;
+            let interval = null;
+            let hovered = false;
+
+            btn.addEventListener('mouseenter', () => {
+                hovered = true;
+                if (interval) clearInterval(interval);
+                let iter = 0;
+                const maxIter = 10;
+
+                interval = setInterval(() => {
+                    if (!hovered) { clearInterval(interval); btn.textContent = originalText; return; }
+                    const revealed = Math.floor((iter / maxIter) * originalText.length);
+                    btn.textContent = originalText.split('').map((ch, i) => {
+                        if (i < revealed) return originalText[i];
+                        if (ch === ' ') return ' ';
+                        return scrambleChars[Math.floor(Math.random() * scrambleChars.length)];
+                    }).join('');
+                    iter++;
+                    if (iter > maxIter) { clearInterval(interval); btn.textContent = originalText; }
+                }, 45);
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                hovered = false;
+                if (interval) { clearInterval(interval); interval = null; }
+                btn.textContent = originalText;
+            });
+        });
+
+        // ============ Resize ============
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // ============ Init & Start ============
+        updateGrass(0);
+        animate();
+    </script>
+</body>
+</html>
