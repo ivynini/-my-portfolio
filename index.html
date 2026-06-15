@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>丁羽微的作品集</title>
     <style>
-        :root { --bg: #1a1410; }
+        :root { --bg: #e8f0e0; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -26,7 +26,6 @@
             pointer-events: none;
         }
 
-        /* ---- Header ---- */
         .header {
             position: fixed;
             top: 0; left: 0;
@@ -42,9 +41,9 @@
         .logo {
             font-size: 1.25rem;
             font-weight: 700;
-            color: #e8d5c0;
+            color: #3a4a2a;
             letter-spacing: 0.06em;
-            text-shadow: 0 0 30px rgba(180,140,100,0.5);
+            text-shadow: 0 0 20px rgba(80,110,50,0.25);
             pointer-events: auto;
         }
 
@@ -59,7 +58,7 @@
             display: inline-block;
             font-size: 0.95rem;
             font-family: 'Georgia', 'Noto Serif SC', serif;
-            color: #c8b89a;
+            color: #5a7a4a;
             text-decoration: none;
             letter-spacing: 0.08em;
             text-transform: lowercase;
@@ -70,7 +69,7 @@
         }
 
         .nav-btn:hover {
-            color: #f0e0c8;
+            color: #2a3a1a;
             transform: translateY(-4px) scale(1.12);
         }
 
@@ -79,7 +78,7 @@
             position: absolute;
             left: 0; bottom: -4px;
             width: 0; height: 1px;
-            background: #c8b89a;
+            background: #5a7a4a;
             transition: width 0.35s ease;
         }
 
@@ -87,7 +86,6 @@
             width: 100%;
         }
 
-        /* ---- Scroll hint ---- */
         .scroll-hint {
             position: fixed;
             bottom: 32px; left: 50%;
@@ -103,14 +101,14 @@
 
         .scroll-hint span {
             font-size: 0.7rem;
-            color: #8a7a6a;
+            color: #7a8a6a;
             letter-spacing: 0.12em;
         }
 
         .scroll-arrow {
             width: 20px; height: 20px;
-            border-right: 1px solid #8a7a6a;
-            border-bottom: 1px solid #8a7a6a;
+            border-right: 1px solid #7a8a6a;
+            border-bottom: 1px solid #7a8a6a;
             transform: rotate(45deg);
             animation: scrollPulse 2s ease-in-out infinite;
         }
@@ -157,12 +155,13 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
+        renderer.toneMappingExposure = 1.1;
 
         // ============ Scene & Camera ============
+        const BG_COLOR = '#e8f0e0';
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color('#1a1410');
-        scene.fog = new THREE.Fog('#1a1410', 5, 20);
+        scene.background = new THREE.Color(BG_COLOR);
+        scene.fog = new THREE.Fog(BG_COLOR, 6, 22);
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.5, 50);
         const cameraBase = { x: 0, y: 0.6, z: 7.5 };
@@ -170,9 +169,9 @@
         camera.lookAt(0, -0.2, 0);
 
         // ============ Lighting ============
-        scene.add(new THREE.AmbientLight('#3a2a1a', 1.8));
+        scene.add(new THREE.AmbientLight('#d8e8d0', 2.8));
 
-        const sunLight = new THREE.DirectionalLight('#fff8e8', 5.5);
+        const sunLight = new THREE.DirectionalLight('#fffef8', 6.5);
         sunLight.position.set(5, 8, 4);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
@@ -183,67 +182,108 @@
         sunLight.shadow.camera.right = 8;
         sunLight.shadow.camera.top = 8;
         sunLight.shadow.camera.bottom = -8;
-        sunLight.shadow.bias = -0.0001;
+        sunLight.shadow.bias = -0.00015;
         sunLight.shadow.normalBias = 0.02;
         scene.add(sunLight);
 
-        const rimLight = new THREE.DirectionalLight('#8899cc', 1.5);
+        const rimLight = new THREE.DirectionalLight('#b8d8c0', 1.8);
         rimLight.position.set(-3, 1, -4);
         scene.add(rimLight);
 
-        const bounceLight = new THREE.DirectionalLight('#5a4430', 1.2);
-        bounceLight.position.set(0, -1, 2);
+        const bounceLight = new THREE.DirectionalLight('#c8d8b8', 1.6);
+        bounceLight.position.set(0, -1.5, 2);
         scene.add(bounceLight);
 
-        // ============ Ground (shadow catcher) ============
+        // ============ Ground shadow catcher ============
         const ground = new THREE.Mesh(
             new THREE.PlaneGeometry(20, 20),
-            new THREE.ShadowMaterial({ opacity: 0.35 })
+            new THREE.ShadowMaterial({ opacity: 0.25 })
         );
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -3.5;
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // ============ Procedural soil texture ============
+        // ============ Procedural soil texture (high detail) ============
         function createSoilTexture() {
-            const size = 512;
+            const size = 1024;
             const c = document.createElement('canvas');
             c.width = size; c.height = size;
             const ctx = c.getContext('2d');
 
-            const grad = ctx.createRadialGradient(size*0.3, size*0.3, size*0.05, size/2, size/2, size*0.55);
-            grad.addColorStop(0, '#8B7355');
-            grad.addColorStop(0.3, '#6B4226');
-            grad.addColorStop(0.6, '#5C3317');
-            grad.addColorStop(0.85, '#4A2A10');
+            // Base — varied brown gradient
+            const grad = ctx.createRadialGradient(size * 0.35, size * 0.35, size * 0.02, size / 2, size / 2, size * 0.55);
+            grad.addColorStop(0, '#9B8365');
+            grad.addColorStop(0.15, '#8B7355');
+            grad.addColorStop(0.35, '#7B5A38');
+            grad.addColorStop(0.55, '#6B4A28');
+            grad.addColorStop(0.75, '#5C3A1A');
+            grad.addColorStop(0.9, '#4A2A10');
             grad.addColorStop(1, '#3B1F08');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, size, size);
 
+            // Fine grain noise
             const img = ctx.getImageData(0, 0, size, size);
             const d = img.data;
             for (let i = 0; i < d.length; i += 4) {
-                const n = (Math.random() - 0.5) * 35;
+                const n = (Math.random() - 0.5) * 28;
                 d[i]     = Math.min(255, Math.max(0, d[i] + n));
-                d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n * 0.7));
-                d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n * 0.4));
+                d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n * 0.65));
+                d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n * 0.35));
             }
             ctx.putImageData(img, 0, 0);
 
-            for (let i = 0; i < 60; i++) {
-                const x = Math.random() * size, y = Math.random() * size;
-                const r = 3 + Math.random() * 12;
+            // Organic dark patches (humus)
+            for (let i = 0; i < 80; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const r = 4 + Math.random() * 20;
                 const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-                g.addColorStop(0, 'rgba(0,0,0,0.3)');
+                g.addColorStop(0, `rgba(20,10,0,${0.15 + Math.random() * 0.25})`);
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.ellipse(x, y, r, r * (0.6 + Math.random() * 0.8), Math.random() * Math.PI, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Mineral specks (perlite / sand grains)
+            for (let i = 0; i < 400; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const bright = 160 + Math.random() * 80;
+                ctx.fillStyle = `rgba(${bright},${bright * 0.85},${bright * 0.6},${0.08 + Math.random() * 0.12})`;
+                ctx.fillRect(x, y, 1.5 + Math.random() * 3, 1.5 + Math.random() * 3);
+            }
+
+            // Subtle crack lines
+            ctx.strokeStyle = 'rgba(30,15,5,0.25)';
+            ctx.lineWidth = 0.6;
+            for (let i = 0; i < 30; i++) {
+                ctx.beginPath();
+                let cx = Math.random() * size;
+                let cy = Math.random() * size;
+                ctx.moveTo(cx, cy);
+                const steps = 3 + Math.floor(Math.random() * 6);
+                for (let j = 0; j < steps; j++) {
+                    cx += (Math.random() - 0.5) * 60;
+                    cy += (Math.random() - 0.5) * 60;
+                    ctx.lineTo(cx, cy);
+                }
+                ctx.stroke();
+            }
+
+            // Sparse mossy patches (greenish tint)
+            for (let i = 0; i < 25; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const r = 6 + Math.random() * 18;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, 'rgba(80,120,40,0.12)');
                 g.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = g;
                 ctx.fillRect(x - r, y - r, r * 2, r * 2);
-            }
-
-            for (let i = 0; i < 200; i++) {
-                ctx.fillStyle = `rgba(180,150,120,${0.05 + Math.random() * 0.1})`;
-                ctx.fillRect(Math.random() * size, Math.random() * size, 2 + Math.random() * 4, 2 + Math.random() * 4);
             }
 
             const tex = new THREE.CanvasTexture(c);
@@ -255,7 +295,7 @@
 
         // ============ Dirt Sphere ============
         const SPHERE_RADIUS = 1.8;
-        const sphereGeo = new THREE.SphereGeometry(SPHERE_RADIUS, 140, 140);
+        const sphereGeo = new THREE.SphereGeometry(SPHERE_RADIUS, 150, 150);
         const positions = sphereGeo.attributes.position;
         const vertexCount = positions.count;
 
@@ -272,10 +312,11 @@
             const nx = x / len, ny = y / len, nz = z / len;
 
             const displacement =
-                noise3D(nx, ny, nz, 4.5, 0.13) +
-                noise3D(nx, ny, nz, 9.0, 0.07) +
-                noise3D(nx, ny, nz, 16.0, 0.035) +
-                noise3D(nx, ny, nz, 24.0, 0.018);
+                noise3D(nx, ny, nz, 3.5, 0.14) +
+                noise3D(nx, ny, nz, 7.0, 0.08) +
+                noise3D(nx, ny, nz, 13.0, 0.045) +
+                noise3D(nx, ny, nz, 22.0, 0.022) +
+                noise3D(nx, ny, nz, 35.0, 0.01);
 
             const newLen = len + displacement;
             positions.setXYZ(i, nx * newLen, ny * newLen, nz * newLen);
@@ -283,7 +324,7 @@
         sphereGeo.computeVertexNormals();
         sphereGeo.attributes.position.needsUpdate = true;
 
-        // Store surface data for grass placement
+        // Store surface data
         const surfacePoints = [];
         const surfaceNormals = [];
         const posAttr = sphereGeo.attributes.position;
@@ -295,27 +336,38 @@
 
         const sphere = new THREE.Mesh(sphereGeo, new THREE.MeshStandardMaterial({
             map: createSoilTexture(),
-            roughness: 0.85,
-            metalness: 0.02,
-            color: new THREE.Color('#b8a080'),
+            roughness: 0.88,
+            metalness: 0.01,
+            color: new THREE.Color('#c0a888'),
         }));
         sphere.castShadow = true;
         sphere.receiveShadow = true;
         scene.add(sphere);
 
-        // ============ Surface pebbles ============
+        // ============ Surface pebbles (more variety) ============
         const pebbleGroup = new THREE.Group();
-        const pebbleGeo = new THREE.IcosahedronGeometry(0.03, 1);
-        const pebbleMat = new THREE.MeshStandardMaterial({ color: '#7a6a55', roughness: 0.7, metalness: 0.05 });
+        const pebbleGeos = [
+            new THREE.IcosahedronGeometry(0.025, 1),
+            new THREE.IcosahedronGeometry(0.02, 0),
+            new THREE.TetrahedronGeometry(0.028, 0),
+            new THREE.SphereGeometry(0.022, 4, 3),
+        ];
+        const pebbleMats = [
+            new THREE.MeshStandardMaterial({ color: '#8a7a60', roughness: 0.65, metalness: 0.05 }),
+            new THREE.MeshStandardMaterial({ color: '#7a6a50', roughness: 0.7, metalness: 0.03 }),
+            new THREE.MeshStandardMaterial({ color: '#9b8b70', roughness: 0.6, metalness: 0.08 }),
+            new THREE.MeshStandardMaterial({ color: '#6a5a40', roughness: 0.75, metalness: 0.02 }),
+        ];
 
-        for (let i = 0; i < 200; i++) {
+        for (let i = 0; i < 350; i++) {
             const idx = Math.floor(Math.random() * vertexCount);
             const pos = surfacePoints[idx].clone();
             const normal = surfaceNormals[idx].clone();
-            const s = 0.4 + Math.random() * 1.8;
-            pos.add(normal.clone().multiplyScalar(0.02 * s));
+            const s = 0.35 + Math.random() * 2.2;
+            pos.add(normal.clone().multiplyScalar(0.018 * s));
 
-            const pebble = new THREE.Mesh(pebbleGeo, pebbleMat);
+            const gi = Math.floor(Math.random() * pebbleGeos.length);
+            const pebble = new THREE.Mesh(pebbleGeos[gi], pebbleMats[gi]);
             pebble.position.copy(pos);
             pebble.scale.setScalar(s);
             pebble.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
@@ -324,109 +376,152 @@
         }
         sphere.add(pebbleGroup);
 
-        // ============ Grass System ============
-        const GRASS_COUNT = 5000;
+        // ============ Curved Grass System ============
         const grassGroup = new THREE.Group();
         sphere.add(grassGroup);
 
-        function createBladeGeo() {
-            const hw = 0.025, tw = 0.004, h = 1.0;
-            const verts = new Float32Array([
-                -hw,0,0,  hw,0,0, -tw,h,0,   hw,0,0,  tw,h,0, -tw,h,0,
-                 hw,0,0, -hw,0,0,  tw,h,0,  -hw,0,0, -tw,h,0,  tw,h,0,
-                 hw,0,0,  hw,0,-0.006, tw,h,-0.002,
-                -hw,0,-0.006, -hw,0,0, -tw,h,-0.002,
-            ]);
+        // Create a curved blade geometry with given bend amount
+        function createCurvedBladeGeo(bendAmount, segments) {
+            const baseHW = 0.028;
+            const tipHW = 0.003;
+            const height = 1.0;
+            const verts = [];
+
+            for (let s = 0; s < segments; s++) {
+                const t0 = s / segments;
+                const t1 = (s + 1) / segments;
+                const y0 = t0 * height;
+                const y1 = t1 * height;
+
+                // Smooth curve: use sin for more natural arc
+                const x0 = bendAmount * Math.sin(t0 * Math.PI / 2);
+                const x1 = bendAmount * Math.sin(t1 * Math.PI / 2);
+
+                const w0 = baseHW * (1 - t0) + tipHW * t0;
+                const w1 = baseHW * (1 - t1) + tipHW * t1;
+
+                // Front face (2 triangles)
+                verts.push(x0 - w0, y0, 0, x0 + w0, y0, 0, x1 - w1, y1, 0);
+                verts.push(x0 + w0, y0, 0, x1 + w1, y1, 0, x1 - w1, y1, 0);
+
+                // Back face (2 triangles)
+                verts.push(x0 + w0, y0, 0, x0 - w0, y0, 0, x1 + w1, y1, 0);
+                verts.push(x0 - w0, y0, 0, x1 - w1, y1, 0, x1 + w1, y1, 0);
+            }
+
             const geo = new THREE.BufferGeometry();
-            geo.setAttribute('position', new THREE.BufferAttribute(verts, 3));
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(verts), 3));
             geo.computeVertexNormals();
             return geo;
         }
 
-        const grassInstanced = new THREE.InstancedMesh(
-            createBladeGeo(),
-            new THREE.MeshStandardMaterial({ color: '#4a8c3f', roughness: 0.55, metalness: 0, side: THREE.DoubleSide }),
-            GRASS_COUNT
-        );
-        grassInstanced.castShadow = true;
-        grassInstanced.receiveShadow = true;
+        const BEND_VARIANTS = [-0.20, -0.12, -0.05, 0.05, 0.12, 0.20];
+        const BLADES_PER_MESH = 2500;
+        const TOTAL_GRASS = BEND_VARIANTS.length * BLADES_PER_MESH; // 15000
+        const SEGMENTS = 6;
 
-        const grassData = [];
-        const dummy = new THREE.Object3D();
-        const quat = new THREE.Quaternion();
+        const grassMeshes = [];
+        const allGrassData = [];
+        const dummies = [];
+        const grassMats = [];
+
         const upVec = new THREE.Vector3(0, 1, 0);
         const _axis = new THREE.Vector3();
+        const _quat = new THREE.Quaternion();
         const _tiltQuat = new THREE.Quaternion();
 
-        for (let i = 0; i < GRASS_COUNT; i++) {
-            let idx;
-            const rnd = Math.random();
-            if (rnd < 0.65) {
-                idx = Math.floor(Math.random() * vertexCount);
-                while (surfacePoints[idx].y < -0.3 && Math.random() < 0.7) idx = Math.floor(Math.random() * vertexCount);
-            } else if (rnd < 0.9) {
-                idx = Math.floor(Math.random() * vertexCount);
-                while (Math.abs(surfacePoints[idx].y) > 1.0 && Math.random() < 0.6) idx = Math.floor(Math.random() * vertexCount);
-            } else {
-                idx = Math.floor(Math.random() * vertexCount);
-            }
-
-            const pos = surfacePoints[idx].clone();
-            const normal = surfaceNormals[idx].clone();
-            const bladeHeight = 0.12 + Math.random() * 0.45;
-            const threshold = Math.random() * 0.82;
-            const growthSpeed = 0.3 + Math.random() * 0.7;
-            const tilt = (Math.random() - 0.5) * 0.4;
-            const tiltDir = Math.random() * Math.PI * 2;
-
-            // Precompute the base quaternion (normal alignment + tilt)
-            quat.setFromUnitVectors(upVec, normal);
-            _axis.set(Math.cos(tiltDir), 0, Math.sin(tiltDir));
-            _tiltQuat.setFromAxisAngle(_axis, tilt);
-            quat.multiply(_tiltQuat);
-
-            grassData.push({
-                position: pos,
-                baseQuat: quat.clone(),
-                bladeHeight,
-                threshold,
-                growthSpeed,
+        for (let v = 0; v < BEND_VARIANTS.length; v++) {
+            const geo = createCurvedBladeGeo(BEND_VARIANTS[v], SEGMENTS);
+            const mat = new THREE.MeshStandardMaterial({
+                color: '#4a8c3f',
+                roughness: 0.5,
+                metalness: 0,
+                side: THREE.DoubleSide,
             });
+            grassMats.push(mat);
 
-            dummy.position.copy(pos);
-            dummy.quaternion.copy(quat);
-            dummy.scale.set(0.8, 0.001, 0.8);
-            dummy.updateMatrix();
-            grassInstanced.setMatrixAt(i, dummy.matrix);
+            const mesh = new THREE.InstancedMesh(geo, mat, BLADES_PER_MESH);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            const data = [];
+            const dummy = new THREE.Object3D();
+
+            for (let i = 0; i < BLADES_PER_MESH; i++) {
+                let idx;
+                const rnd = Math.random();
+                if (rnd < 0.7) {
+                    idx = Math.floor(Math.random() * vertexCount);
+                    while (surfacePoints[idx].y < -0.4 && Math.random() < 0.65) idx = Math.floor(Math.random() * vertexCount);
+                } else if (rnd < 0.92) {
+                    idx = Math.floor(Math.random() * vertexCount);
+                    while (Math.abs(surfacePoints[idx].y) > 1.1 && Math.random() < 0.5) idx = Math.floor(Math.random() * vertexCount);
+                } else {
+                    idx = Math.floor(Math.random() * vertexCount);
+                }
+
+                const pos = surfacePoints[idx].clone();
+                const normal = surfaceNormals[idx].clone();
+                const bladeHeight = 0.15 + Math.random() * 0.50;
+                const threshold = Math.random() * 0.78;
+                const growthSpeed = 0.25 + Math.random() * 0.75;
+                const tilt = (Math.random() - 0.5) * 0.55;
+                const tiltDir = Math.random() * Math.PI * 2;
+
+                _quat.setFromUnitVectors(upVec, normal);
+                _axis.set(Math.cos(tiltDir), 0, Math.sin(tiltDir));
+                _tiltQuat.setFromAxisAngle(_axis, tilt);
+                _quat.multiply(_tiltQuat);
+
+                data.push({
+                    position: pos,
+                    baseQuat: _quat.clone(),
+                    bladeHeight,
+                    threshold,
+                    growthSpeed,
+                });
+
+                dummy.position.copy(pos);
+                dummy.quaternion.copy(_quat);
+                dummy.scale.set(0.75, 0.001, 0.75);
+                dummy.updateMatrix();
+                mesh.setMatrixAt(i, dummy.matrix);
+            }
+            mesh.instanceMatrix.needsUpdate = true;
+
+            // Color variation
+            const gc = new THREE.Color();
+            for (let i = 0; i < BLADES_PER_MESH; i++) {
+                gc.setHSL(
+                    0.22 + Math.random() * 0.12,
+                    0.5 + Math.random() * 0.45,
+                    0.22 + Math.random() * 0.32
+                );
+                mesh.setColorAt(i, gc);
+            }
+            mesh.instanceColor.needsUpdate = true;
+
+            grassMeshes.push(mesh);
+            allGrassData.push(data);
+            dummies.push(dummy);
+            grassGroup.add(mesh);
         }
-        grassInstanced.instanceMatrix.needsUpdate = true;
 
-        const grassColor = new THREE.Color();
-        for (let i = 0; i < GRASS_COUNT; i++) {
-            grassColor.setHSL(
-                0.28 + (Math.random() - 0.5) * 0.08,
-                0.55 + (Math.random() - 0.5) * 0.3,
-                0.28 + (Math.random() - 0.5) * 0.25
-            );
-            grassInstanced.setColorAt(i, grassColor);
-        }
-        grassInstanced.instanceColor.needsUpdate = true;
-        grassGroup.add(grassInstanced);
-
-        // ============ Floating soil particles ============
+        // ============ Floating particles ============
         const particlesGroup = new THREE.Group();
         scene.add(particlesGroup);
         const particleDataArr = [];
 
-        for (let i = 0; i < 150; i++) {
+        for (let i = 0; i < 180; i++) {
             const mat = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setHSL(0.1, 0.3, 0.3 + Math.random() * 0.3),
-                transparent: true, opacity: 0.3 + Math.random() * 0.5,
+                color: new THREE.Color().setHSL(0.12, 0.25, 0.35 + Math.random() * 0.4),
+                transparent: true,
+                opacity: 0.2 + Math.random() * 0.45,
             });
-            const p = new THREE.Mesh(new THREE.SphereGeometry(0.015, 4, 4), mat);
+            const p = new THREE.Mesh(new THREE.SphereGeometry(0.012, 4, 4), mat);
             const angle = Math.random() * Math.PI * 2;
             const phi = (Math.random() - 0.5) * Math.PI;
-            const radius = 2.0 + Math.random() * 1.5;
+            const radius = 2.0 + Math.random() * 1.8;
             p.position.set(
                 Math.cos(angle) * Math.cos(phi) * radius,
                 Math.sin(phi) * radius,
@@ -434,10 +529,10 @@
             );
             p.userData = {
                 basePos: p.position.clone(),
-                speed: 0.2 + Math.random() * 0.6,
-                amplitude: 0.1 + Math.random() * 0.3,
+                speed: 0.15 + Math.random() * 0.55,
+                amplitude: 0.08 + Math.random() * 0.28,
                 phase: Math.random() * Math.PI * 2,
-                orbitSpeed: (Math.random() - 0.5) * 0.3,
+                orbitSpeed: (Math.random() - 0.5) * 0.25,
             };
             particlesGroup.add(p);
             particleDataArr.push(p);
@@ -455,26 +550,32 @@
 
         // ============ Update grass ============
         function updateGrass(progress) {
-            for (let i = 0; i < GRASS_COUNT; i++) {
-                const gd = grassData[i];
-                let scale;
-                if (progress <= gd.threshold) {
-                    scale = 0.001;
-                } else if (progress >= gd.threshold + gd.growthSpeed) {
-                    scale = gd.bladeHeight;
-                } else {
-                    const t = (progress - gd.threshold) / gd.growthSpeed;
-                    const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-                    scale = 0.001 + (gd.bladeHeight - 0.001) * eased;
-                }
+            for (let m = 0; m < grassMeshes.length; m++) {
+                const data = allGrassData[m];
+                const mesh = grassMeshes[m];
+                const dummy = dummies[m];
 
-                dummy.position.copy(gd.position);
-                dummy.quaternion.copy(gd.baseQuat);
-                dummy.scale.set(0.8, Math.max(0.001, scale), 0.8);
-                dummy.updateMatrix();
-                grassInstanced.setMatrixAt(i, dummy.matrix);
+                for (let i = 0; i < data.length; i++) {
+                    const gd = data[i];
+                    let scale;
+                    if (progress <= gd.threshold) {
+                        scale = 0.001;
+                    } else if (progress >= gd.threshold + gd.growthSpeed) {
+                        scale = gd.bladeHeight;
+                    } else {
+                        const t = (progress - gd.threshold) / gd.growthSpeed;
+                        const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                        scale = 0.001 + (gd.bladeHeight - 0.001) * eased;
+                    }
+
+                    dummy.position.copy(gd.position);
+                    dummy.quaternion.copy(gd.baseQuat);
+                    dummy.scale.set(0.75, Math.max(0.001, scale), 0.75);
+                    dummy.updateMatrix();
+                    mesh.setMatrixAt(i, dummy.matrix);
+                }
+                mesh.instanceMatrix.needsUpdate = true;
             }
-            grassInstanced.instanceMatrix.needsUpdate = true;
         }
 
         // ============ Mouse tracking ============
@@ -492,20 +593,16 @@
             const dt = Math.min(clock.getDelta(), 0.1);
             const time = performance.now() * 0.001;
 
-            // Smooth scroll progress
             const targetProgress = getScrollProgress();
             currentProgress += (targetProgress - currentProgress) * 3.0 * dt;
 
-            // Smooth sphere rotation
             const targetRotation = currentProgress * Math.PI * 3.0;
             currentRotation += (targetRotation - currentRotation) * 2.5 * dt;
             sphere.rotation.y = currentRotation;
             sphere.rotation.x = Math.sin(currentRotation * 0.3) * 0.12;
 
-            // Grass
             updateGrass(currentProgress);
 
-            // Floating particles
             for (const p of particleDataArr) {
                 const ud = p.userData;
                 const bp = ud.basePos;
@@ -514,16 +611,14 @@
                     bp.y + Math.cos(time * ud.speed * 1.3 + ud.phase) * ud.amplitude,
                     bp.z + Math.cos(time * ud.speed * 0.7 + ud.phase) * ud.amplitude
                 );
-                const angle = Math.atan2(p.position.z, p.position.x) + ud.orbitSpeed * dt;
+                const a = Math.atan2(p.position.z, p.position.x) + ud.orbitSpeed * dt;
                 const r = Math.sqrt(p.position.x ** 2 + p.position.z ** 2);
-                p.position.x = Math.cos(angle) * r;
-                p.position.z = Math.sin(angle) * r;
+                p.position.x = Math.cos(a) * r;
+                p.position.z = Math.sin(a) * r;
             }
 
-            // Hide scroll hint
             scrollHint.style.opacity = currentProgress > 0.05 ? Math.max(0, 1 - currentProgress * 10) : 1;
 
-            // Smooth mouse parallax on camera
             mouseX += (targetMouseX - mouseX) * 2.5 * dt;
             mouseY += (targetMouseY - mouseY) * 2.5 * dt;
             camera.position.x = cameraBase.x + mouseX * 0.35;
