@@ -223,13 +223,13 @@
         }
         .img-strip.dragging { transition: none; }
         .img-card {
-            flex-shrink: 0; width: 380px;
-            opacity: 0; transform: translateY(60px);
+            flex-shrink: 0; width: 280px;
+            opacity: 0; transform: translateY(70px);
             transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22,1,0.36,1);
         }
         .img-card.visible { opacity: 1; transform: translateY(0); }
-        .img-card:nth-child(even) { transform: translateY(20px); opacity: 0; }
-        .img-card:nth-child(even).visible { transform: translateY(-28px); opacity: 1; }
+        .img-card:nth-child(even) { transform: translateY(30px); opacity: 0; }
+        .img-card:nth-child(even).visible { transform: translateY(-60px); opacity: 1; }
         .img-card img {
             width: 100%; height: auto; display: block;
             border-radius: 10px; border: 1px solid rgba(0,200,140,0.1);
@@ -241,13 +241,6 @@
             border-color: rgba(0,220,160,0.35);
             box-shadow: 0 10px 40px rgba(0,200,140,0.1);
         }
-        .img-card .img-label {
-            display: block; text-align: center; margin-top: 10px;
-            font-size: 0.82rem; color: #609080; letter-spacing: 0.06em;
-            transition: color 0.35s;
-        }
-        .img-card:hover .img-label { color: #00ccaa; }
-
         /* Strip nav arrows */
         .strip-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
@@ -267,7 +260,7 @@
         }
 
         @media (max-width: 768px) {
-            .img-card { width: 280px; }
+            .img-card { width: 220px; }
         }
     </style>
 </head>
@@ -325,13 +318,13 @@
             </div>
             <div class="img-strip-wrap" id="stripWrap">
                 <div class="img-strip" id="imgStrip">
-                    <div class="img-card"><span class="img-label">线框结构</span><img src="images/1/1.png" alt="线框结构"></div>
-                    <div class="img-card"><span class="img-label">泥土覆盖</span><img src="images/1/2.png" alt="泥土覆盖"></div>
-                    <div class="img-card"><span class="img-label">草地生长</span><img src="images/1/3.png" alt="草地生长"></div>
-                    <div class="img-card"><span class="img-label">完整草皮</span><img src="images/1/4.png" alt="完整草皮"></div>
-                    <div class="img-card"><span class="img-label">细节展示</span><img src="images/1/5.png" alt="细节展示"></div>
-                    <div class="img-card"><span class="img-label">整体效果</span><img src="images/1/6.png" alt="整体效果"></div>
-                    <div class="img-card"><span class="img-label">交互演示</span><img src="images/1/7.png" alt="交互演示"></div>
+                    <div class="img-card"><img src="images/1/1.png" alt="线框结构"></div>
+                    <div class="img-card"><img src="images/1/2.png" alt="泥土覆盖"></div>
+                    <div class="img-card"><img src="images/1/3.png" alt="草地生长"></div>
+                    <div class="img-card"><img src="images/1/4.png" alt="完整草皮"></div>
+                    <div class="img-card"><img src="images/1/5.png" alt="细节展示"></div>
+                    <div class="img-card"><img src="images/1/6.png" alt="整体效果"></div>
+                    <div class="img-card"><img src="images/1/7.png" alt="交互演示"></div>
                 </div>
                 <div class="strip-arrow prev" id="stripPrev">←</div>
                 <div class="strip-arrow next" id="stripNext">→</div>
@@ -860,7 +853,7 @@
             if (!strip) return;
 
             const cards = strip.querySelectorAll('.img-card');
-            const cardW = 380 + 28; // card width + gap
+            const cardW = 280 + 28; // card width + gap
             let offset = 0, maxOffset = 0;
             let isDragging = false, startX = 0, baseOffset = 0, dragOffset = 0;
 
