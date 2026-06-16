@@ -1044,23 +1044,26 @@
             if (!canvas || !section) return;
 
             const ctx = canvas.getContext('2d');
-            const COLS = 7, ROWS = 5, TOTAL = COLS * ROWS;
+            const COLS = 7, ROWS = 5;
             const IMG_COUNT = 5;
 
             const images = [];
             let loaded = 0, curIdx = 0;
             let frags = [];
             let progress = 0, targetProgress = 0;
-            let switching = false, switchPhase = 0;
-            let switchTimer = 0;
+            let switching = false;
+            let switchTarget = 0;
+
+            // Stack mode state
+            let stackActive = false;
+            let stackOffsets = [0, 0, 0, 0, 0];       // current horizontal offset per image (px)
+            let stackTargets = [0, 0, 0, 0, 0];       // target offsets
+            let stackDarks = [0, 0, 0, 0, 0];         // darkness overlay per image
 
             // Load all images
             for (let i = 1; i <= IMG_COUNT; i++) {
                 const img = new Image();
-                img.onload = () => {
-                    loaded++;
-                    if (loaded === IMG_COUNT) init();
-                };
+                img.onload = () => { loaded++; if (loaded === IMG_COUNT) init(); };
                 img.src = 'images/2/' + i + '.png';
                 images.push(img);
             }
@@ -1071,16 +1074,18 @@
                     const btn = document.createElement('button');
                     btn.className = 'puzzle-thumb' + (i === curIdx ? ' active' : '');
                     btn.textContent = i + 1;
-                    btn.addEventListener('click', () => { if (!switching && i !== curIdx) startSwitch(i); });
+                    btn.addEventListener('click', () => { if (!switching && i !== curIdx) switchTo(i); });
                     thumbs.appendChild(btn);
                 }
             }
 
             function highlightThumb() {
+                if (!thumbs) return;
                 const all = thumbs.querySelectorAll('.puzzle-thumb');
                 all.forEach((b, i) => b.classList.toggle('active', i === curIdx));
             }
 
+            // ---- Fragment initialization ----
             function initFragments() {
                 const img = images[curIdx];
                 if (!img || !img.naturalWidth) return;
@@ -1093,19 +1098,9 @@
                 const fw = sw / COLS, fh = sh / ROWS;
 
                 frags = [];
-                const cxArr = [], cyArr = [];
-                for (let row = 0; row < ROWS; row++) {
-                    for (let col = 0; col < COLS; col++) {
-                        const gcx = (col - (COLS - 1) / 2) / ((COLS - 1) / 2);
-                        const gcy = (row - (ROWS - 1) / 2) / ((ROWS - 1) / 2);
-                        cxArr.push(gcx); cyArr.push(gcy);
-                    }
-                }
-
                 const maxDist = Math.sqrt(2);
                 for (let row = 0; row < ROWS; row++) {
                     for (let col = 0; col < COLS; col++) {
-                        const idx = row * COLS + col;
                         const tx = ox + col * fw;
                         const ty = oy + row * fh;
                         const sx = (col / COLS) * iw;
@@ -1119,19 +1114,15 @@
 
                         const baseAngle = Math.atan2(gcy, gcx);
                         const randAngle = baseAngle + (Math.random() - 0.5) * 1.4;
-                        const scatterDist = (0.8 + dist * 2.2 + Math.random() * 1.8) * Math.max(canvas.width, canvas.height) * 0.8;
-
-                        const scatterX = Math.cos(randAngle) * scatterDist;
-                        const scatterY = Math.sin(randAngle) * scatterDist;
-                        const scatterRot = (Math.random() - 0.5) * Math.PI * 2.4;
+                        const scatterDist = (0.8 + dist * 2.2 + Math.random() * 1.8) * Math.max(cw, ch) * 0.8;
 
                         frags.push({
                             tx, ty, fw, fh,
                             sx, sy, ssw, ssh,
-                            ox: scatterX, oy: scatterY,
-                            rot: scatterRot,
+                            ox: Math.cos(randAngle) * scatterDist,
+                            oy: Math.sin(randAngle) * scatterDist,
+                            rot: (Math.random() - 0.5) * Math.PI * 2.4,
                             delay: (dist * 0.25 + Math.random() * 0.2),
-                            gcx, gcy, dist,
                         });
                     }
                 }
@@ -1156,6 +1147,7 @@
             function resize() {
                 setCanvasSize();
                 initFragments();
+                recalcStackTargets();
             }
 
             function init() {
@@ -1163,117 +1155,283 @@
                 resize();
                 progress = getScrollProgress();
                 targetProgress = progress;
-                draw(progress);
+                if (progress >= 1.0) enterStack();
+                draw();
             }
 
+            // ---- Scroll progress (completes earlier) ----
             function getScrollProgress() {
                 const st = section.offsetTop;
                 const sh = section.offsetHeight;
                 const wh = window.innerHeight;
                 const sy = window.scrollY;
-                const raw = (sy + wh - st) / (sh + wh * 0.25);
+                // Progress 1.0 when section is ~60% in viewport
+                const raw = (sy + wh - st) / (sh * 0.5 + wh * 0.22);
                 return Math.max(0, Math.min(1, raw));
             }
 
-            function startSwitch(toIdx) {
-                switching = true;
-                switchPhase = 1; // scattering out
-                targetProgress = -0.15; // overshoot for burst feel
-                switchTimer = 0;
-                switchTarget = toIdx;
+            // ---- Stack mode helpers ----
+            function imgLayout(idx) {
+                const img = images[idx];
+                if (!img || !img.naturalWidth) return null;
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const cw = canvas.width / dpr, ch = canvas.height / dpr;
+                const iw = img.naturalWidth, ih = img.naturalHeight;
+                const scale = Math.min(cw / iw, ch / ih);
+                const sw = iw * scale, sh = ih * scale;
+                const cx = (cw - sw) / 2, cy = (ch - sh) / 2;
+                return { img, sw, sh, cx, cy, cw, ch };
             }
 
-            let switchTarget = 0;
+            function recalcStackTargets() {
+                // Order behind current: left-near, right-near, left-far, right-far
+                // Image indices: (curIdx-2, curIdx-1, curIdx+1, curIdx+2) mod 5
+                const map = [
+                    { rel: -2, peek: -0.82, dark: 0.55 },
+                    { rel: -1, peek: -0.58, dark: 0.32 },
+                    { rel: +1, peek: +0.58, dark: 0.32 },
+                    { rel: +2, peek: +0.82, dark: 0.55 },
+                ];
+                for (let i = 0; i < IMG_COUNT; i++) {
+                    if (i === curIdx) {
+                        stackTargets[i] = 0;
+                        stackDarks[i] = 0;
+                    } else {
+                        // Default: off-screen right
+                        stackTargets[i] = 9999;
+                        stackDarks[i] = 0.65;
+                        for (const m of map) {
+                            if (i === ((curIdx + m.rel + IMG_COUNT) % IMG_COUNT)) {
+                                const L = imgLayout(i);
+                                if (L) {
+                                    stackTargets[i] = L.sw * m.peek;
+                                    stackDarks[i] = m.dark;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-            function draw(prog) {
+            function enterStack() {
+                if (stackActive) return;
+                stackActive = true;
+                // Initialize all offsets off-screen, current at center
+                for (let i = 0; i < IMG_COUNT; i++) {
+                    stackOffsets[i] = (i === curIdx) ? 0 : 9999;
+                }
+                recalcStackTargets();
+            }
+
+            function exitStack() {
+                stackActive = false;
+            }
+
+            function switchTo(idx) {
+                if (switching) return;
+                switching = true;
+                switchTarget = idx;
+
+                if (stackActive) {
+                    // Stack mode: slide cards
+                    curIdx = idx;
+                    highlightThumb();
+                    recalcStackTargets();
+                    // Animate; check when settled
+                } else {
+                    // Puzzle mode: scatter → swap → reassemble
+                    targetProgress = -0.18;
+                }
+            }
+
+            // ---- Canvas click for stack interaction ----
+            function hitTest(e) {
+                if (!stackActive || switching) return -1;
+                const rect = canvas.getBoundingClientRect();
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const mx = (e.clientX - rect.left) * (canvas.width / dpr) / rect.width;
+                const my = (e.clientY - rect.top) * (canvas.height / dpr) / rect.height;
+                const checkOrder = [-1, 1, -2, 2];
+                for (const rel of checkOrder) {
+                    const i = (curIdx + rel + IMG_COUNT) % IMG_COUNT;
+                    if (i === curIdx) continue;
+                    const L = imgLayout(i);
+                    if (!L) continue;
+                    const ix = L.cx + stackOffsets[i];
+                    const iy = L.cy;
+                    if (mx >= ix && mx <= ix + L.sw && my >= iy && my <= iy + L.sh) return i;
+                }
+                return -1;
+            }
+
+            canvas.addEventListener('click', function(e) {
+                const idx = hitTest(e);
+                if (idx >= 0) switchTo(idx);
+            });
+
+            canvas.addEventListener('mousemove', function(e) {
+                canvas.style.cursor = hitTest(e) >= 0 ? 'pointer' : 'default';
+            });
+
+            // ---- Draw ----
+            function drawFragments(prog) {
                 const img = images[curIdx];
                 if (!img || !img.naturalWidth || !frags.length) return;
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const bounded = Math.max(0, Math.min(1, prog));
+
+                for (const f of frags) {
+                    const fp = Math.max(0, Math.min(1, (bounded - f.delay * 0.6) / (1 - f.delay * 0.6)));
+                    const ep = 1 - Math.pow(1 - fp, 3.5);
+                    const cx = f.tx + f.fw / 2 + f.ox * (1 - ep);
+                    const cy = f.ty + f.fh / 2 + f.oy * (1 - ep);
+                    const cr = f.rot * (1 - ep);
+
+                    ctx.save();
+                    ctx.globalAlpha = 0.85 + fp * 0.15;
+                    ctx.translate(cx, cy);
+                    ctx.rotate(cr);
+                    ctx.drawImage(img, f.sx, f.sy, f.ssw, f.ssh, -f.fw / 2, -f.fh / 2, f.fw, f.fh);
+                    ctx.restore();
+                }
+
+                if (prog > 0.82) {
+                    const ga = (prog - 0.82) / 0.18 * 0.35;
+                    const L = imgLayout(curIdx);
+                    if (L) {
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(0, 220, 160, ' + ga + ')';
+                        ctx.lineWidth = 2;
+                        ctx.shadowColor = 'rgba(0, 200, 140, ' + (ga * 1.5) + ')';
+                        ctx.shadowBlur = 18;
+                        ctx.strokeRect(L.cx, L.cy, L.sw, L.sh);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            function drawStack() {
+                const drawOrder = [
+                    (curIdx - 2 + IMG_COUNT) % IMG_COUNT,
+                    (curIdx + 2) % IMG_COUNT,
+                    (curIdx - 1 + IMG_COUNT) % IMG_COUNT,
+                    (curIdx + 1) % IMG_COUNT,
+                    curIdx,
+                ];
+
+                for (const i of drawOrder) {
+                    const L = imgLayout(i);
+                    if (!L) continue;
+                    const x = L.cx + stackOffsets[i];
+                    const y = L.cy;
+
+                    // Dark overlay on non-current images
+                    if (i !== curIdx) {
+                        ctx.save();
+                        ctx.globalAlpha = stackDarks[i];
+                        ctx.fillStyle = '#050a10';
+                        ctx.fillRect(x, y, L.sw, L.sh);
+                        ctx.restore();
+                    }
+
+                    // Draw image (peek images slightly dimmed)
+                    const alpha = i === curIdx ? 1 : 0.78 - stackDarks[i] * 0.3;
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.drawImage(L.img, x, y, L.sw, L.sh);
+                    ctx.restore();
+
+                    // Glow border on current
+                    if (i === curIdx) {
+                        ctx.save();
+                        ctx.strokeStyle = 'rgba(0, 220, 160, 0.42)';
+                        ctx.lineWidth = 2;
+                        ctx.shadowColor = 'rgba(0, 200, 140, 0.55)';
+                        ctx.shadowBlur = 20;
+                        ctx.strokeRect(x, y, L.sw, L.sh);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            function draw() {
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 ctx.save();
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.scale(dpr, dpr);
 
-                for (const f of frags) {
-                    const boundedProg = Math.max(0, Math.min(1, prog));
-                    const fp = Math.max(0, Math.min(1, (boundedProg - f.delay * 0.6) / (1 - f.delay * 0.6)));
-                    const ep = 1 - Math.pow(1 - fp, 3.5);
-
-                    const cx = f.tx + f.fw / 2 + f.ox * (1 - ep);
-                    const cy = f.ty + f.fh / 2 + f.oy * (1 - ep);
-                    const cr = f.rot * (1 - ep);
-                    const alpha = 0.85 + fp * 0.15;
-
-                    ctx.save();
-                    ctx.globalAlpha = alpha;
-                    ctx.translate(cx, cy);
-                    ctx.rotate(cr);
-                    ctx.drawImage(img, f.sx, f.sy, f.ssw, f.ssh, -f.fw / 2, -f.fh / 2, f.fw, f.fh);
-                    ctx.restore();
+                if (stackActive) {
+                    drawStack();
+                } else {
+                    drawFragments(progress);
                 }
+
                 ctx.restore();
-
-                // Edge glow when assembled
-                if (prog > 0.9) {
-                    const glowAlpha = (prog - 0.9) / 0.1 * 0.35;
-                    ctx.save();
-                    ctx.setTransform(1, 0, 0, 1, 0, 0);
-                    ctx.scale(dpr, dpr);
-                    const imgW = canvas.width / dpr;
-                    const imgH = canvas.height / dpr;
-                    const scale = Math.min(imgW / img.naturalWidth, imgH / img.naturalHeight);
-                    const sw = img.naturalWidth * scale, sh = img.naturalHeight * scale;
-                    const ox = (imgW - sw) / 2, oy = (imgH - sh) / 2;
-                    ctx.strokeStyle = 'rgba(0, 220, 160, ' + glowAlpha + ')';
-                    ctx.lineWidth = 2;
-                    ctx.shadowColor = 'rgba(0, 200, 140, ' + (glowAlpha * 1.5) + ')';
-                    ctx.shadowBlur = 18;
-                    ctx.strokeRect(ox, oy, sw, sh);
-                    ctx.restore();
-                }
             }
 
+            // ---- Update loop ----
             function update() {
                 requestAnimationFrame(update);
 
-                if (!images[curIdx] || !images[curIdx].naturalWidth) return;
+                const allReady = images[curIdx] && images[curIdx].naturalWidth;
+                if (!allReady) return;
 
                 const sp = getScrollProgress();
 
                 if (!switching) {
                     targetProgress = sp;
-                } else if (switchPhase === 1) {
-                    // Scattering out
-                    switchTimer += 0.016;
-                    if (progress <= -0.1 && switchTimer > 0.25) {
-                        // Swap image
+                } else if (!stackActive) {
+                    // Puzzle-mode switch: scatter out
+                    if (progress <= -0.12) {
                         curIdx = switchTarget;
                         highlightThumb();
                         resize();
-                        switchPhase = 2;
-                        targetProgress = sp; // reassemble
-                        switchTimer = 0;
+                        targetProgress = sp;
                     }
-                } else if (switchPhase === 2) {
-                    // Reassembling
-                    targetProgress = sp;
-                    if (progress > 0.92 && Math.abs(targetProgress - progress) < 0.03) {
+                }
+
+                // Handle stack mode enter/exit
+                if (!switching && targetProgress >= 1.0 && !stackActive) {
+                    enterStack();
+                } else if (!switching && targetProgress < 0.88 && stackActive) {
+                    exitStack();
+                }
+
+                // Lerp progress (puzzle mode)
+                if (!stackActive) {
+                    progress += (targetProgress - progress) * 0.07;
+                    if (switching && targetProgress < 0) {
+                        progress += (targetProgress - progress) * 0.14;
+                    }
+                }
+
+                // Lerp stack offsets
+                if (stackActive) {
+                    for (let i = 0; i < IMG_COUNT; i++) {
+                        const spd = i === curIdx ? 0.12 : 0.09;
+                        stackOffsets[i] += (stackTargets[i] - stackOffsets[i]) * spd;
+                    }
+                    // Check switch settled
+                    if (switching) {
+                        let settled = true;
+                        for (let i = 0; i < IMG_COUNT; i++) {
+                            if (Math.abs(stackOffsets[i] - stackTargets[i]) > 1.5) { settled = false; break; }
+                        }
+                        if (settled) switching = false;
+                    }
+                } else {
+                    // Check puzzle-mode switch settled
+                    if (switching && progress > 0.92 && Math.abs(targetProgress - progress) < 0.03) {
                         switching = false;
-                        switchPhase = 0;
                     }
                 }
 
-                progress += (targetProgress - progress) * 0.07;
-
-                // Faster scatter on switch
-                if (switching && switchPhase === 1) {
-                    progress += (targetProgress - progress) * 0.15;
-                }
-
-                draw(progress);
+                draw();
 
                 if (hint) {
-                    hint.style.opacity = progress > 0.94 ? '0' : '1';
+                    const hide = stackActive || progress > 0.88;
+                    hint.style.opacity = hide ? '0' : '1';
                     hint.style.transition = 'opacity 0.5s';
                 }
             }
