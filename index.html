@@ -14,7 +14,7 @@
             font-family: 'Georgia', 'Noto Serif SC', 'STSong', serif;
             cursor: default;
         }
-        #canvas { position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+        #canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
         #hero { height: 400vh; position: relative; }
         .header {
             position: fixed; top: 0; left: 0; width: 100%;
@@ -57,47 +57,71 @@
             50% { opacity: 1; transform: rotate(45deg) translateY(6px); }
         }
 
-        /* ====== Page Sections ====== */
+        /* ====== Page Sections (overlay on 3D scene) ====== */
         .page-section {
             position: relative; min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            z-index: 1; background: var(--bg);
-            border-top: 1px solid rgba(0,200,140,0.08);
+            z-index: 2;
         }
-        .section-inner { max-width: 680px; width: 86vw; padding: 60px 0; }
+        .glass-card {
+            background: rgba(6, 16, 26, 0.65);
+            border: 1px solid rgba(0, 200, 140, 0.15);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 22px;
+            padding: 54px 50px;
+            max-width: 620px; width: 86vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(0,220,160,0.05);
+            position: relative; overflow: hidden;
+        }
+        .glass-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,220,160,0.4), transparent);
+            animation: cardShimmer 3s ease-in-out infinite;
+        }
+        @keyframes cardShimmer {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        .section-inner { max-width: 620px; width: 100%; }
         .section-inner h2 {
             font-size: 2.2rem; font-weight: 700; color: #d0f0e0;
-            letter-spacing: 0.06em; margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(0,220,160,0.2);
+            letter-spacing: 0.06em; margin-bottom: 18px;
+            text-shadow: 0 0 24px rgba(0,220,160,0.2);
             opacity: 0; transform: translateY(30px);
             transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s,
                         transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s;
         }
         .section-inner .subtitle {
-            font-size: 0.9rem; color: #00cc88; letter-spacing: 0.12em;
-            display: block; margin-bottom: 28px;
+            font-size: 0.85rem; color: #00cc88; letter-spacing: 0.14em;
+            display: block; margin-bottom: 24px;
             opacity: 0; transform: translateY(20px);
             transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s,
                         transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s;
         }
         .section-inner p {
             font-size: 1.05rem; line-height: 2; color: #a0c8b8;
-            letter-spacing: 0.03em; margin-bottom: 16px;
+            letter-spacing: 0.03em; margin-bottom: 14px;
             opacity: 0; transform: translateY(24px);
             transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s,
                         transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s;
         }
         .section-inner .tag-row {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px;
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px;
             opacity: 0; transform: translateY(16px);
             transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s,
                         transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s;
         }
         .section-inner .tag {
-            padding: 6px 18px; border-radius: 20px;
+            padding: 7px 18px; border-radius: 20px;
             font-size: 0.82rem; letter-spacing: 0.05em;
             border: 1px solid rgba(0,200,140,0.22);
             color: #80c8a8; background: rgba(0,180,120,0.05);
+            transition: border-color 0.4s, box-shadow 0.4s;
+        }
+        .section-inner .tag:hover {
+            border-color: rgba(0,220,160,0.5);
+            box-shadow: 0 0 16px rgba(0,200,140,0.12);
         }
         .section-inner.visible h2,
         .section-inner.visible .subtitle,
@@ -135,39 +159,45 @@
     </section>
 
     <section id="about" class="page-section">
-        <div class="section-inner">
-            <h2>关于我</h2>
-            <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
-            <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
-            <div class="tag-row">
-                <span class="tag">Three.js</span>
-                <span class="tag">WebGL</span>
-                <span class="tag">UI/UX</span>
-                <span class="tag">创意编程</span>
-                <span class="tag">生成艺术</span>
+        <div class="glass-card">
+            <div class="section-inner">
+                <h2>关于我</h2>
+                <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
+                <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
+                <div class="tag-row">
+                    <span class="tag">Three.js</span>
+                    <span class="tag">WebGL</span>
+                    <span class="tag">UI/UX</span>
+                    <span class="tag">创意编程</span>
+                    <span class="tag">生成艺术</span>
+                </div>
             </div>
         </div>
     </section>
 
     <section id="project" class="page-section">
-        <div class="section-inner">
-            <span class="subtitle">作品展示</span>
-            <h2>项目</h2>
-            <p>这里将展示我的代表作品，包括 3D 交互、创意网站与生成式视觉项目。敬请期待。</p>
-            <div class="tag-row">
-                <span class="tag">作品一</span>
-                <span class="tag">作品二</span>
-                <span class="tag">作品三</span>
+        <div class="glass-card">
+            <div class="section-inner">
+                <span class="subtitle">作品展示</span>
+                <h2>项目</h2>
+                <p>这里将展示我的代表作品，包括 3D 交互、创意网站与生成式视觉项目。敬请期待。</p>
+                <div class="tag-row">
+                    <span class="tag">作品一</span>
+                    <span class="tag">作品二</span>
+                    <span class="tag">作品三</span>
+                </div>
             </div>
         </div>
     </section>
 
     <section id="contact" class="page-section">
-        <div class="section-inner">
-            <span class="subtitle">与我联系</span>
-            <h2>Contact</h2>
-            <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
-            <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
+        <div class="glass-card">
+            <div class="section-inner">
+                <span class="subtitle">与我联系</span>
+                <h2>Contact</h2>
+                <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
+                <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
+            </div>
         </div>
     </section>
 
@@ -615,13 +645,20 @@
         }
 
         // ===================== STATE =====================
-        let curProg = 0, curRot = 0;
+        let curProg = 0, curRot = 0, curPhase = 0;
         let mx = 0, my = 0, tmx = 0, tmy = 0;
 
         const GRASS_VH = 4.0;
+        const CONTENT_VH = 5.8; // point where content is fully visible
 
         function grassProg() {
             return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * GRASS_VH)));
+        }
+
+        function contentPhase() {
+            // 0 = in grass zone, 1 = fully in content zone
+            const vh = window.innerHeight;
+            return Math.max(0, Math.min(1, (window.scrollY - vh * (GRASS_VH - 0.5)) / (vh * 1.5)));
         }
 
         function updateGrass(prog) {
@@ -678,9 +715,11 @@
             const t = performance.now() * 0.001;
 
             const tp = grassProg();
+            const cp = contentPhase();
             curProg += (tp - curProg) * 3.5 * dt;
+            curPhase += (cp - curPhase) * 2.5 * dt;
             const tr = curProg * Math.PI * 2.5;
-            const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25;
+            const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25 + curPhase * 1.5;
             curRot += ((tr + idleRot * (curProg >= 1.0 ? 1 : 0)) - curRot) * 2.5 * dt;
 
             // Rotate everything together — sphere + line frame + grass + rings + nodes
@@ -691,13 +730,22 @@
             const soilTarget = 0.06 + curProg * 0.94;
             soilMat.opacity += (soilTarget - soilMat.opacity) * 4.0 * dt;
 
+            // 3D scene dims during content phase
+            const dimFactor = 1 - curPhase * 0.45;
+            renderer.toneMappingExposure = 1.05 * dimFactor;
+            scene.fog = new THREE.Fog(BG, 8 - curPhase * 3, 28 - curPhase * 8);
+            ptBottom.intensity = (10 + Math.sin(t * 2.0) * 0.45 * 8) * dimFactor;
+            ptTop.intensity = (4 + Math.sin(t * 2.0) * 0.45 * 5) * dimFactor;
+            key.intensity = 6.0 * dimFactor;
+            rim.intensity = 2.2 * dimFactor;
+
             updateGrass(curProg);
 
-            // Scanner ring oscillation
+            // Scanner ring oscillation (dims in content phase)
             const scanY = -2.5 + Math.sin(t * 0.8) * 3.5;
             scanRing.position.y = scanY;
             scanRing.scale.setScalar(1 + Math.abs(Math.sin(t * 0.8)) * 0.3);
-            scanMat.opacity = 0.25 + Math.abs(Math.cos(t * 0.8)) * 0.3;
+            scanMat.opacity = (0.25 + Math.abs(Math.cos(t * 0.8)) * 0.3) * (1 - curPhase * 0.6);
 
             // Tech particles
             for (const p of techParts) {
@@ -712,16 +760,13 @@
                 p.position.x = Math.cos(a) * r; p.position.z = Math.sin(a) * r;
             }
 
-            // Pulsing lights
-            const pulse = 0.55 + Math.sin(t * 2.0) * 0.45;
-            ptBottom.intensity = 10 + pulse * 8;
-            ptTop.intensity = 4 + pulse * 5;
-
             scrollHint.style.opacity = curProg > 0.05 ? Math.max(0, 1 - curProg * 10) : 1;
 
             mx += (tmx - mx) * 2.5 * dt; my += (tmy - my) * 2.5 * dt;
-            camera.position.x = camBase.x + mx * 0.3;
-            camera.position.y = camBase.y + my * 0.22;
+            const targetZ = camBase.z + curPhase * 1.8;
+            camera.position.z += (targetZ - camera.position.z) * 2.0 * dt;
+            camera.position.x += ((camBase.x + mx * 0.3) - camera.position.x) * 2.5 * dt;
+            camera.position.y += ((camBase.y + my * 0.22) - camera.position.y) * 2.5 * dt;
             camera.lookAt(0, 0, 0);
 
             renderer.render(scene, camera);
