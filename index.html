@@ -271,11 +271,11 @@
         }
 
         /* ====== Project 2 — Puzzle ====== */
-        #project2 { min-height: 100vh; padding: 50px 0 40px; }
+        #project2 { min-height: 100vh; padding: 50px 0 40px; overflow: visible; }
         .puzzle-stage {
             position: relative; margin: 0 auto;
             max-width: 800px; width: 88vw;
-            aspect-ratio: auto;
+            aspect-ratio: auto; overflow: visible;
         }
         .puzzle-canvas {
             display: block; width: 100%; height: auto;
@@ -1134,21 +1134,25 @@
                 if (!img || !img.naturalWidth) {
                     canvas.width = 800; canvas.height = 500;
                     canvas.style.width = '100%'; canvas.style.height = 'auto';
+                    canvas.style.marginLeft = '0';
                     return;
                 }
                 const maxW = Math.min(stage.clientWidth || 800, 800);
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const ratio = img.naturalHeight / img.naturalWidth;
-                canvas.width = Math.round(maxW * dpr);
-                canvas.height = Math.round(maxW * ratio * dpr);
-                canvas.style.width = maxW + 'px';
-                canvas.style.height = Math.round(maxW * ratio) + 'px';
+                const wMult = stackActive ? STACK_CANVAS_MULT : 1.0;
+                const cssW = Math.round(maxW * wMult);
+                canvas.width = Math.round(cssW * dpr);
+                canvas.height = Math.round(cssW * ratio * dpr);
+                canvas.style.width = cssW + 'px';
+                canvas.style.height = Math.round(cssW * ratio) + 'px';
+                canvas.style.marginLeft = stackActive ? Math.round((maxW - cssW) / 2) + 'px' : '0';
             }
 
             function resize() {
                 setCanvasSize();
                 initFragments();
-                recalcStackTargets();
+                if (stackActive) recalcStackTargets();
             }
 
             function init() {
@@ -1172,25 +1176,34 @@
             }
 
             // ---- Stack mode helpers ----
-            function imgLayout(idx) {
+            const STACK_CANVAS_MULT = 1.38; // canvas 38% wider in stack mode
+
+            function imgLayout(idx, useStackScale) {
                 const img = images[idx];
                 if (!img || !img.naturalWidth) return null;
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const cw = canvas.width / dpr, ch = canvas.height / dpr;
                 const iw = img.naturalWidth, ih = img.naturalHeight;
-                const scale = Math.min(cw / iw, ch / ih);
-                const sw = iw * scale, sh = ih * scale;
+                let fitScale;
+                if (useStackScale) {
+                    // Size for normal canvas width, not the wider stack canvas
+                    const normalCw = cw / STACK_CANVAS_MULT;
+                    fitScale = Math.min(normalCw / iw, ch / ih);
+                } else {
+                    fitScale = Math.min(cw / iw, ch / ih);
+                }
+                const sw = iw * fitScale, sh = ih * fitScale;
                 const cx = (cw - sw) / 2, cy = (ch - sh) / 2;
                 return { img, sw, sh, cx, cy, cw, ch };
             }
 
             function recalcStackTargets() {
-                // Positions relative to current image: left-far, left-near, right-near, right-far
+                // Peek offsets: larger = card shifted further, more edge visible
                 const map = [
-                    { rel: -2, peek: -0.68, dark: 0.38 },
-                    { rel: -1, peek: -0.40, dark: 0.16 },
-                    { rel: +1, peek: +0.40, dark: 0.16 },
-                    { rel: +2, peek: +0.68, dark: 0.38 },
+                    { rel: -2, peek: -0.56, dark: 0.08 },
+                    { rel: -1, peek: -0.32, dark: 0.03 },
+                    { rel: +1, peek: +0.32, dark: 0.03 },
+                    { rel: +2, peek: +0.56, dark: 0.08 },
                 ];
                 for (let i = 0; i < IMG_COUNT; i++) {
                     if (i === curIdx) {
@@ -1198,10 +1211,10 @@
                         stackDarks[i] = 0;
                     } else {
                         stackTargets[i] = 9999;
-                        stackDarks[i] = 0.6;
+                        stackDarks[i] = 0.15;
                         for (const m of map) {
                             if (i === ((curIdx + m.rel + IMG_COUNT) % IMG_COUNT)) {
-                                const L = imgLayout(i);
+                                const L = imgLayout(i, true);
                                 if (L) {
                                     stackTargets[i] = L.sw * m.peek;
                                     stackDarks[i] = m.dark;
@@ -1215,24 +1228,25 @@
             function enterStack() {
                 if (stackActive) return;
                 stackActive = true;
+                setCanvasSize(); // make canvas wider
                 recalcStackTargets();
                 for (let i = 0; i < IMG_COUNT; i++) {
                     if (i === curIdx) {
                         stackOffsets[i] = 0;
                     } else {
-                        const L = imgLayout(i);
-                        const extra = L ? L.sw * 0.45 : 200;
-                        if (stackTargets[i] > 0) {
-                            stackOffsets[i] = stackTargets[i] + extra;
-                        } else {
-                            stackOffsets[i] = stackTargets[i] - extra;
-                        }
+                        const L = imgLayout(i, true);
+                        const extra = L ? L.sw * 0.50 : 200;
+                        stackOffsets[i] = stackTargets[i] > 0
+                            ? stackTargets[i] + extra
+                            : stackTargets[i] - extra;
                     }
                 }
             }
 
             function exitStack() {
                 stackActive = false;
+                setCanvasSize(); // restore normal width
+                if (images[curIdx] && images[curIdx].naturalWidth) initFragments();
             }
 
             function switchTo(idx) {
@@ -1244,8 +1258,7 @@
                     // Stack mode: slide cards
                     curIdx = idx;
                     highlightThumb();
-                    recalcStackTargets();
-                    // Animate; check when settled
+                    resize(); // updates canvas for new image + recalc targets
                 } else {
                     // Puzzle mode: scatter → swap → reassemble
                     targetProgress = -0.18;
@@ -1263,7 +1276,7 @@
                 for (const rel of checkOrder) {
                     const i = (curIdx + rel + IMG_COUNT) % IMG_COUNT;
                     if (i === curIdx) continue;
-                    const L = imgLayout(i);
+                    const L = imgLayout(i, true);
                     if (!L) continue;
                     const ix = L.cx + stackOffsets[i];
                     const iy = L.cy;
@@ -1319,6 +1332,20 @@
             }
 
             function drawStack() {
+                // Subtle backdrop so cards pop against dark page
+                const L0 = imgLayout(curIdx, true);
+                if (L0) {
+                    const pad = 60;
+                    ctx.save();
+                    const grad = ctx.createRadialGradient(L0.cw / 2, L0.ch / 2, L0.sw * 0.3, L0.cw / 2, L0.ch / 2, L0.sw * 1.2);
+                    grad.addColorStop(0, 'rgba(15, 25, 20, 0.55)');
+                    grad.addColorStop(1, 'rgba(5, 10, 16, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, L0.cw, L0.ch);
+                    ctx.restore();
+                }
+
+                // Back-to-front draw order
                 const drawOrder = [
                     (curIdx - 2 + IMG_COUNT) % IMG_COUNT,
                     (curIdx + 2) % IMG_COUNT,
@@ -1328,23 +1355,24 @@
                 ];
 
                 for (const i of drawOrder) {
-                    const L = imgLayout(i);
+                    const L = imgLayout(i, true);
                     if (!L) continue;
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
                     const isCurrent = i === curIdx;
 
-                    if (!isCurrent) {
-                        // Card shadow behind peek images
-                        ctx.save();
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-                        ctx.shadowBlur = 16;
-                        ctx.shadowOffsetX = (stackOffsets[i] > 0 ? -4 : 4);
-                        ctx.fillStyle = '#0a0a0a';
-                        ctx.fillRect(x, y, L.sw, L.sh);
-                        ctx.restore();
+                    // Card shadow
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                    ctx.shadowBlur = isCurrent ? 24 : 12;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 4;
+                    ctx.fillStyle = '#0d0d0d';
+                    ctx.fillRect(x, y, L.sw, L.sh);
+                    ctx.restore();
 
-                        // Dark overlay
+                    // Subtle dim on non-current cards
+                    if (!isCurrent) {
                         ctx.save();
                         ctx.globalAlpha = stackDarks[i];
                         ctx.fillStyle = '#050a10';
@@ -1352,22 +1380,21 @@
                         ctx.restore();
                     }
 
-                    // Draw image
-                    const alpha = isCurrent ? 1 : 0.88 - stackDarks[i] * 0.4;
+                    // Draw image at full brightness
                     ctx.save();
-                    ctx.globalAlpha = alpha;
+                    ctx.globalAlpha = isCurrent ? 1 : 0.92;
                     ctx.drawImage(L.img, x, y, L.sw, L.sh);
                     ctx.restore();
 
-                    // Border on every card
+                    // Card border
                     ctx.save();
                     ctx.strokeStyle = isCurrent
-                        ? 'rgba(0, 220, 160, 0.5)'
-                        : 'rgba(0, 200, 140, 0.2)';
-                    ctx.lineWidth = isCurrent ? 2 : 1;
+                        ? 'rgba(0, 238, 187, 0.6)'
+                        : 'rgba(0, 180, 130, 0.28)';
+                    ctx.lineWidth = isCurrent ? 2.5 : 1.5;
                     if (isCurrent) {
-                        ctx.shadowColor = 'rgba(0, 200, 140, 0.45)';
-                        ctx.shadowBlur = 18;
+                        ctx.shadowColor = 'rgba(0, 220, 160, 0.5)';
+                        ctx.shadowBlur = 20;
                     }
                     ctx.strokeRect(x, y, L.sw, L.sh);
                     ctx.restore();
