@@ -269,6 +269,40 @@
         @media (max-width: 768px) {
             .img-card { width: 220px; }
         }
+
+        /* ====== Project 2 — Puzzle ====== */
+        #project2 { min-height: 100vh; padding: 50px 0 40px; }
+        .puzzle-stage {
+            position: relative; margin: 0 auto;
+            max-width: 800px; width: 88vw;
+            aspect-ratio: auto;
+        }
+        .puzzle-canvas {
+            display: block; width: 100%; height: auto;
+            border-radius: 10px; border: 1px solid rgba(0,200,140,0.12);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        }
+        .puzzle-thumbs {
+            display: flex; justify-content: center; gap: 14px; margin-top: 22px;
+            flex-wrap: wrap;
+        }
+        .puzzle-thumb {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 2px solid rgba(0,200,140,0.2); cursor: pointer;
+            background: rgba(5,10,16,0.8); color: #80b8a0;
+            font-size: 0.85rem; font-weight: 600;
+            transition: all 0.35s; padding: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .puzzle-thumb:hover { border-color: rgba(0,220,160,0.5); color: #00eebb; }
+        .puzzle-thumb.active { border-color: #00cc88; color: #00eebb; background: rgba(0,200,140,0.1); box-shadow: 0 0 14px rgba(0,200,140,0.2); }
+        .puzzle-hint {
+            text-align: center; margin-top: 10px; font-size: 0.78rem;
+            color: #508068; letter-spacing: 0.06em;
+        }
+        @media (max-width: 768px) {
+            .puzzle-thumb { width: 36px; height: 36px; font-size: 0.75rem; }
+        }
     </style>
 </head>
 <body>
@@ -337,6 +371,29 @@
                 <div class="strip-arrow next" id="stripNext">→</div>
             </div>
             <div class="strip-indicator" id="stripIndicator">← 拖拽或滑动查看全部 7 张图片 →</div>
+        </div>
+    </section>
+
+    <section id="project2" class="full-page">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
+        <div class="project-wrap">
+            <div class="project-text" id="project2Text">
+                <span class="section-label">Project 02</span>
+                <h2>创意视觉设计</h2>
+                <p>探索图形与视觉的无限可能，将创意概念转化为令人惊叹的视觉体验。</p>
+                <div class="tag-row">
+                    <span class="tag">视觉设计</span>
+                    <span class="tag">创意编程</span>
+                    <span class="tag">动态图形</span>
+                </div>
+            </div>
+            <div class="puzzle-stage" id="puzzleStage">
+                <canvas class="puzzle-canvas" id="puzzleCanvas"></canvas>
+            </div>
+            <div class="puzzle-thumbs" id="puzzleThumbs"></div>
+            <div class="puzzle-hint" id="puzzleHint">继续滚动以完成拼图</div>
         </div>
     </section>
 
@@ -852,7 +909,7 @@
 
         // Track active section for nav highlight
         const navBtns = document.querySelectorAll('.nav-btn');
-        const sections = ['about', 'project', 'contact'];
+        const sections = ['about', 'project', 'project2', 'contact'];
         const sectionEls = sections.map(id => document.getElementById(id));
         const heroEl = document.getElementById('hero');
         const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 4;
@@ -872,6 +929,7 @@
                     const top = el.offsetTop;
                     if (sy >= top) {
                         active = sections[i];
+                        if (active === 'project2') active = 'project';
                         break;
                     }
                 }
@@ -969,9 +1027,259 @@
             // Also observe project text
             const textEl = document.getElementById('projectText');
             if (textEl) cardObserver.observe(textEl);
+            const textEl2 = document.getElementById('project2Text');
+            if (textEl2) cardObserver.observe(textEl2);
 
             window.addEventListener('resize', () => setOffset(offset, true));
             setOffset(0, true);
+        })();
+
+        // ===================== PUZZLE (Project 2) =====================
+        (function puzzle() {
+            const canvas = document.getElementById('puzzleCanvas');
+            const thumbs = document.getElementById('puzzleThumbs');
+            const hint = document.getElementById('puzzleHint');
+            const stage = document.getElementById('puzzleStage');
+            const section = document.getElementById('project2');
+            if (!canvas || !section) return;
+
+            const ctx = canvas.getContext('2d');
+            const COLS = 7, ROWS = 5, TOTAL = COLS * ROWS;
+            const IMG_COUNT = 5;
+
+            const images = [];
+            let loaded = 0, curIdx = 0;
+            let frags = [];
+            let progress = 0, targetProgress = 0;
+            let switching = false, switchPhase = 0;
+            let switchTimer = 0;
+
+            // Load all images
+            for (let i = 1; i <= IMG_COUNT; i++) {
+                const img = new Image();
+                img.onload = () => {
+                    loaded++;
+                    if (loaded === IMG_COUNT) init();
+                };
+                img.src = 'images/2/' + i + '.png';
+                images.push(img);
+            }
+
+            function createThumbs() {
+                thumbs.innerHTML = '';
+                for (let i = 0; i < IMG_COUNT; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'puzzle-thumb' + (i === curIdx ? ' active' : '');
+                    btn.textContent = i + 1;
+                    btn.addEventListener('click', () => { if (!switching && i !== curIdx) startSwitch(i); });
+                    thumbs.appendChild(btn);
+                }
+            }
+
+            function highlightThumb() {
+                const all = thumbs.querySelectorAll('.puzzle-thumb');
+                all.forEach((b, i) => b.classList.toggle('active', i === curIdx));
+            }
+
+            function initFragments() {
+                const img = images[curIdx];
+                if (!img || !img.naturalWidth) return;
+                const iw = img.naturalWidth, ih = img.naturalHeight;
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const cw = canvas.width / dpr, ch = canvas.height / dpr;
+                const scale = Math.min(cw / iw, ch / ih);
+                const sw = iw * scale, sh = ih * scale;
+                const ox = (cw - sw) / 2, oy = (ch - sh) / 2;
+                const fw = sw / COLS, fh = sh / ROWS;
+
+                frags = [];
+                const cxArr = [], cyArr = [];
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const gcx = (col - (COLS - 1) / 2) / ((COLS - 1) / 2);
+                        const gcy = (row - (ROWS - 1) / 2) / ((ROWS - 1) / 2);
+                        cxArr.push(gcx); cyArr.push(gcy);
+                    }
+                }
+
+                const maxDist = Math.sqrt(2);
+                for (let row = 0; row < ROWS; row++) {
+                    for (let col = 0; col < COLS; col++) {
+                        const idx = row * COLS + col;
+                        const tx = ox + col * fw;
+                        const ty = oy + row * fh;
+                        const sx = (col / COLS) * iw;
+                        const sy = (row / ROWS) * ih;
+                        const ssw = iw / COLS;
+                        const ssh = ih / ROWS;
+
+                        const gcx = (col - (COLS - 1) / 2) / ((COLS - 1) / 2);
+                        const gcy = (row - (ROWS - 1) / 2) / ((ROWS - 1) / 2);
+                        const dist = Math.sqrt(gcx * gcx + gcy * gcy) / maxDist;
+
+                        const baseAngle = Math.atan2(gcy, gcx);
+                        const randAngle = baseAngle + (Math.random() - 0.5) * 1.4;
+                        const scatterDist = (0.8 + dist * 2.2 + Math.random() * 1.8) * Math.max(canvas.width, canvas.height) * 0.8;
+
+                        const scatterX = Math.cos(randAngle) * scatterDist;
+                        const scatterY = Math.sin(randAngle) * scatterDist;
+                        const scatterRot = (Math.random() - 0.5) * Math.PI * 2.4;
+
+                        frags.push({
+                            tx, ty, fw, fh,
+                            sx, sy, ssw, ssh,
+                            ox: scatterX, oy: scatterY,
+                            rot: scatterRot,
+                            delay: (dist * 0.25 + Math.random() * 0.2),
+                            gcx, gcy, dist,
+                        });
+                    }
+                }
+            }
+
+            function setCanvasSize() {
+                const img = images[curIdx];
+                if (!img || !img.naturalWidth) {
+                    canvas.width = 800; canvas.height = 500;
+                    canvas.style.width = '100%'; canvas.style.height = 'auto';
+                    return;
+                }
+                const maxW = Math.min(stage.clientWidth || 800, 800);
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const ratio = img.naturalHeight / img.naturalWidth;
+                canvas.width = Math.round(maxW * dpr);
+                canvas.height = Math.round(maxW * ratio * dpr);
+                canvas.style.width = maxW + 'px';
+                canvas.style.height = Math.round(maxW * ratio) + 'px';
+            }
+
+            function resize() {
+                setCanvasSize();
+                initFragments();
+            }
+
+            function init() {
+                createThumbs();
+                resize();
+                progress = getScrollProgress();
+                targetProgress = progress;
+                draw(progress);
+            }
+
+            function getScrollProgress() {
+                const st = section.offsetTop;
+                const sh = section.offsetHeight;
+                const wh = window.innerHeight;
+                const sy = window.scrollY;
+                const raw = (sy + wh - st) / (sh + wh * 0.25);
+                return Math.max(0, Math.min(1, raw));
+            }
+
+            function startSwitch(toIdx) {
+                switching = true;
+                switchPhase = 1; // scattering out
+                targetProgress = -0.15; // overshoot for burst feel
+                switchTimer = 0;
+                switchTarget = toIdx;
+            }
+
+            let switchTarget = 0;
+
+            function draw(prog) {
+                const img = images[curIdx];
+                if (!img || !img.naturalWidth || !frags.length) return;
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.scale(dpr, dpr);
+
+                for (const f of frags) {
+                    const boundedProg = Math.max(0, Math.min(1, prog));
+                    const fp = Math.max(0, Math.min(1, (boundedProg - f.delay * 0.6) / (1 - f.delay * 0.6)));
+                    const ep = 1 - Math.pow(1 - fp, 3.5);
+
+                    const cx = f.tx + f.fw / 2 + f.ox * (1 - ep);
+                    const cy = f.ty + f.fh / 2 + f.oy * (1 - ep);
+                    const cr = f.rot * (1 - ep);
+                    const alpha = 0.85 + fp * 0.15;
+
+                    ctx.save();
+                    ctx.globalAlpha = alpha;
+                    ctx.translate(cx, cy);
+                    ctx.rotate(cr);
+                    ctx.drawImage(img, f.sx, f.sy, f.ssw, f.ssh, -f.fw / 2, -f.fh / 2, f.fw, f.fh);
+                    ctx.restore();
+                }
+                ctx.restore();
+
+                // Edge glow when assembled
+                if (prog > 0.9) {
+                    const glowAlpha = (prog - 0.9) / 0.1 * 0.35;
+                    ctx.save();
+                    ctx.setTransform(1, 0, 0, 1, 0, 0);
+                    ctx.scale(dpr, dpr);
+                    const imgW = canvas.width / dpr;
+                    const imgH = canvas.height / dpr;
+                    const scale = Math.min(imgW / img.naturalWidth, imgH / img.naturalHeight);
+                    const sw = img.naturalWidth * scale, sh = img.naturalHeight * scale;
+                    const ox = (imgW - sw) / 2, oy = (imgH - sh) / 2;
+                    ctx.strokeStyle = 'rgba(0, 220, 160, ' + glowAlpha + ')';
+                    ctx.lineWidth = 2;
+                    ctx.shadowColor = 'rgba(0, 200, 140, ' + (glowAlpha * 1.5) + ')';
+                    ctx.shadowBlur = 18;
+                    ctx.strokeRect(ox, oy, sw, sh);
+                    ctx.restore();
+                }
+            }
+
+            function update() {
+                requestAnimationFrame(update);
+
+                if (!images[curIdx] || !images[curIdx].naturalWidth) return;
+
+                const sp = getScrollProgress();
+
+                if (!switching) {
+                    targetProgress = sp;
+                } else if (switchPhase === 1) {
+                    // Scattering out
+                    switchTimer += 0.016;
+                    if (progress <= -0.1 && switchTimer > 0.25) {
+                        // Swap image
+                        curIdx = switchTarget;
+                        highlightThumb();
+                        resize();
+                        switchPhase = 2;
+                        targetProgress = sp; // reassemble
+                        switchTimer = 0;
+                    }
+                } else if (switchPhase === 2) {
+                    // Reassembling
+                    targetProgress = sp;
+                    if (progress > 0.92 && Math.abs(targetProgress - progress) < 0.03) {
+                        switching = false;
+                        switchPhase = 0;
+                    }
+                }
+
+                progress += (targetProgress - progress) * 0.07;
+
+                // Faster scatter on switch
+                if (switching && switchPhase === 1) {
+                    progress += (targetProgress - progress) * 0.15;
+                }
+
+                draw(progress);
+
+                if (hint) {
+                    hint.style.opacity = progress > 0.94 ? '0' : '1';
+                    hint.style.transition = 'opacity 0.5s';
+                }
+            }
+
+            window.addEventListener('resize', resize);
+            update();
         })();
 
         // ===================== ANIMATION =====================
