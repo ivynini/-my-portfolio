@@ -316,22 +316,17 @@
                 for (let x = 0; x < W; x++) {
                     const xu = x / W;
                     const ef = 1 - Math.abs(xu - 0.5) * 2;
-                    const ea = Math.pow(ef, 1.7);
-                    const ta = 1 - Math.pow(t, 1.4) * 0.82;
-                    const a = ta * ea;
+                    const ea = Math.pow(Math.max(0, ef), 0.9);
+                    const ta = 1 - Math.pow(t, 1.2) * 0.75;
+                    const a = Math.min(1, ta * ea + 0.15);
                     const idx = (y * W + x) * 4;
-                    img.data[idx] = Math.min(255, 10 + t * 52 + (Math.random() - 0.5) * 12);
-                    img.data[idx + 1] = Math.min(255, 74 + t * 90 + (Math.random() - 0.5) * 18);
-                    img.data[idx + 2] = Math.min(255, 10 + t * 28 + (Math.random() - 0.5) * 8);
+                    img.data[idx] = Math.min(255, 8 + t * 55 + (Math.random() - 0.5) * 12);
+                    img.data[idx + 1] = Math.min(255, 72 + t * 95 + (Math.random() - 0.5) * 18);
+                    img.data[idx + 2] = Math.min(255, 8 + t * 30 + (Math.random() - 0.5) * 8);
                     img.data[idx + 3] = Math.floor(Math.min(255, a * 255));
                 }
             }
             ctx.putImageData(img, 0, 0);
-            ctx.strokeStyle = 'rgba(100,190,70,0.07)'; ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(W / 2 - 1 + Math.random() * 2, 0);
-            ctx.quadraticCurveTo(W / 2 + Math.random() * 3, H * 0.5, W / 2 - 1 + Math.random() * 2, H);
-            ctx.stroke();
             const tex = new THREE.CanvasTexture(c);
             tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
             tex.minFilter = THREE.LinearMipmapLinearFilter;
@@ -352,9 +347,9 @@
                 for (let x = 0; x < W; x++) {
                     const xu = x / W;
                     const ef = 1 - Math.abs(xu - 0.5) * 2;
-                    const ea = Math.pow(ef, 1.7);
-                    const ta = 1 - Math.pow(t, 1.4) * 0.82;
-                    const a = Math.floor(Math.min(255, ta * ea * 255));
+                    const ea = Math.pow(Math.max(0, ef), 0.9);
+                    const ta = 1 - Math.pow(t, 1.2) * 0.75;
+                    const a = Math.floor(Math.min(255, Math.min(1, ta * ea + 0.15) * 255));
                     const idx = (y * W + x) * 4;
                     img.data[idx] = img.data[idx + 1] = img.data[idx + 2] = 255;
                     img.data[idx + 3] = a;
@@ -373,7 +368,7 @@
         const alphaTex = createAlphaTex();
 
         function createTurfBladeGeo(bend, segs) {
-            const bh = 0.012, th = 0.0013, H = 1.0;
+            const bh = 0.022, th = 0.002, H = 1.0;
             const posA = [], uvA = [];
             for (let s = 0; s < segs; s++) {
                 const t0 = s / segs, t1 = (s + 1) / segs;
@@ -426,7 +421,7 @@
         for (let m = 0; m < BENDS.length; m++) {
             const geo = createTurfBladeGeo(BENDS[m], SEGS);
             const mat = new THREE.MeshStandardMaterial({
-                map: bladeTex, alphaMap: alphaTex, alphaTest: 0.35,
+                map: bladeTex, alphaMap: alphaTex, alphaTest: 0.12,
                 roughness: 0.45, metalness: 0.0,
                 side: THREE.DoubleSide, color: new THREE.Color('#ffffff'), depthWrite: true,
             });
@@ -454,8 +449,8 @@
                 // Varied heights: mostly short turf, some medium blades
                 const heightRand = Math.random();
                 const bladeH = heightRand < 0.8
-                    ? 0.03 + Math.random() * 0.08  // Short turf
-                    : 0.10 + Math.random() * 0.12; // Occasional taller blade
+                    ? 0.06 + Math.random() * 0.12  // Short turf
+                    : 0.15 + Math.random() * 0.18; // Occasional taller blade
 
                 const threshold = seedDist[vi] * 0.80 + (Math.random() - 0.5) * 0.13;
                 const growthSpd = 0.18 + Math.random() * 0.32;
@@ -468,7 +463,7 @@
 
                 data.push({ position: pos, baseQuat: qA.clone(), bladeH, threshold, growthSpd });
                 dum.position.copy(pos); dum.quaternion.copy(qA);
-                dum.scale.set(0.55, 0.001, 0.55); dum.updateMatrix();
+                dum.scale.set(0.7, 0.001, 0.7); dum.updateMatrix();
                 mesh.setMatrixAt(i, dum.matrix);
             }
             mesh.instanceMatrix.needsUpdate = true;
@@ -519,7 +514,7 @@
                         const e = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
                         s = 0.001 + (gd.bladeH - 0.001) * e; }
                     dum.position.copy(gd.position); dum.quaternion.copy(gd.baseQuat);
-                    dum.scale.set(0.55, Math.max(0.001, s), 0.55); dum.updateMatrix();
+                    dum.scale.set(0.7, Math.max(0.001, s), 0.7); dum.updateMatrix();
                     mesh.setMatrixAt(i, dum.matrix);
                 }
                 mesh.instanceMatrix.needsUpdate = true;
