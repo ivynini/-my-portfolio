@@ -9,12 +9,13 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--bg);
-            height: 700vh; overflow-x: hidden;
+            overflow-x: hidden;
             overscroll-behavior: none;
             font-family: 'Georgia', 'Noto Serif SC', 'STSong', serif;
             cursor: default;
         }
-        #canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+        #canvas { position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+        #hero { height: 400vh; position: relative; }
         .header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: 28px 40px; display: flex;
@@ -56,55 +57,64 @@
             50% { opacity: 1; transform: rotate(45deg) translateY(6px); }
         }
 
-        /* ====== Section Overlays ====== */
-        .section-overlay {
-            position: fixed; inset: 0; z-index: 5;
+        /* ====== Page Sections ====== */
+        .page-section {
+            position: relative; min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            pointer-events: none; opacity: 0;
-            transition: opacity 0.7s ease;
+            z-index: 1; background: var(--bg);
+            border-top: 1px solid rgba(0,200,140,0.08);
         }
-        .section-overlay.active { pointer-events: auto; }
-        .section-card {
-            background: rgba(8, 20, 32, 0.72);
-            border: 1px solid rgba(0, 200, 140, 0.18);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-radius: 20px;
-            padding: 56px 52px; max-width: 600px; width: 88vw;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,220,160,0.06);
+        .section-inner { max-width: 680px; width: 86vw; padding: 60px 0; }
+        .section-inner h2 {
+            font-size: 2.2rem; font-weight: 700; color: #d0f0e0;
+            letter-spacing: 0.06em; margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(0,220,160,0.2);
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s,
+                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s;
         }
-        .section-card h2 {
-            font-size: 2rem; font-weight: 700; color: #d0f0e0;
-            letter-spacing: 0.06em; margin-bottom: 24px;
-            text-shadow: 0 0 20px rgba(0,220,160,0.25);
-            opacity: 0; transform: translateY(24px);
-            transition: opacity 0.9s ease 0.15s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s;
-        }
-        .section-card p {
-            font-size: 1.05rem; line-height: 1.9; color: #a0c8b8;
-            letter-spacing: 0.03em;
+        .section-inner .subtitle {
+            font-size: 0.9rem; color: #00cc88; letter-spacing: 0.12em;
+            display: block; margin-bottom: 28px;
             opacity: 0; transform: translateY(20px);
-            transition: opacity 0.9s ease 0.35s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.35s;
+            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s,
+                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s;
         }
-        .section-card .tag-row {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
+        .section-inner p {
+            font-size: 1.05rem; line-height: 2; color: #a0c8b8;
+            letter-spacing: 0.03em; margin-bottom: 16px;
+            opacity: 0; transform: translateY(24px);
+            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s,
+                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s;
+        }
+        .section-inner .tag-row {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px;
             opacity: 0; transform: translateY(16px);
-            transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s;
+            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s,
+                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s;
         }
-        .section-card .tag {
-            padding: 6px 16px; border-radius: 20px;
-            font-size: 0.8rem; letter-spacing: 0.05em;
-            border: 1px solid rgba(0,200,140,0.25);
-            color: #80c8a8; background: rgba(0,180,120,0.06);
+        .section-inner .tag {
+            padding: 6px 18px; border-radius: 20px;
+            font-size: 0.82rem; letter-spacing: 0.05em;
+            border: 1px solid rgba(0,200,140,0.22);
+            color: #80c8a8; background: rgba(0,180,120,0.05);
         }
-        .section-card.show h2,
-        .section-card.show p,
-        .section-card.show .tag-row { opacity: 1; transform: translateY(0); }
+        .section-inner.visible h2,
+        .section-inner.visible .subtitle,
+        .section-inner.visible p,
+        .section-inner.visible .tag-row { opacity: 1; transform: translateY(0); }
 
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
+        #contact .section-inner { text-align: center; }
+        #contact .contact-link {
+            display: inline-block; color: #00ddbb; font-size: 1.1rem;
+            text-decoration: none; letter-spacing: 0.05em;
+            padding: 12px 32px; border: 1px solid rgba(0,200,140,0.3);
+            border-radius: 30px; margin-top: 20px;
+            transition: background 0.35s, box-shadow 0.35s;
+            opacity: 0; transform: translateY(20px);
         }
+        #contact .section-inner.visible .contact-link { opacity: 1; transform: translateY(0); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.5s, transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.5s, background 0.35s, box-shadow 0.35s; }
+        .contact-link:hover { background: rgba(0,200,140,0.08); box-shadow: 0 0 28px rgba(0,200,140,0.15); }
     </style>
 </head>
 <body>
@@ -116,15 +126,16 @@
             <a href="#" class="nav-btn">contact</a>
         </nav>
     </header>
-    <canvas id="canvas"></canvas>
-    <div class="scroll-hint" id="scrollHint">
-        <span>下滑探索</span>
-        <div class="scroll-arrow"></div>
-    </div>
+    <section id="hero">
+        <canvas id="canvas"></canvas>
+        <div class="scroll-hint" id="scrollHint">
+            <span>下滑探索</span>
+            <div class="scroll-arrow"></div>
+        </div>
+    </section>
 
-    <!-- About Section Overlay -->
-    <div class="section-overlay" id="aboutOverlay">
-        <div class="section-card" id="aboutCard">
+    <section id="about" class="page-section">
+        <div class="section-inner">
             <h2>关于我</h2>
             <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
             <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
@@ -136,7 +147,29 @@
                 <span class="tag">生成艺术</span>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section id="project" class="page-section">
+        <div class="section-inner">
+            <span class="subtitle">作品展示</span>
+            <h2>项目</h2>
+            <p>这里将展示我的代表作品，包括 3D 交互、创意网站与生成式视觉项目。敬请期待。</p>
+            <div class="tag-row">
+                <span class="tag">作品一</span>
+                <span class="tag">作品二</span>
+                <span class="tag">作品三</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="page-section">
+        <div class="section-inner">
+            <span class="subtitle">与我联系</span>
+            <h2>Contact</h2>
+            <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
+            <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
+        </div>
+    </section>
 
     <script type="importmap">
         { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -582,23 +615,13 @@
         }
 
         // ===================== STATE =====================
-        let curProg = 0, curRot = 0, curAbout = 0;
+        let curProg = 0, curRot = 0;
         let mx = 0, my = 0, tmx = 0, tmy = 0;
 
-        const GRASS_END_VH = 4.0;   // grass fully grown at 400vh
-        const ABOUT_START_VH = 4.0; // about section starts at 400vh
-        const ABOUT_END_VH = 5.8;   // about section fully visible at 580vh
-
-        const aboutOverlay = document.getElementById('aboutOverlay');
-        const aboutCard = document.getElementById('aboutCard');
+        const GRASS_VH = 4.0;
 
         function grassProg() {
-            return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * GRASS_END_VH)));
-        }
-
-        function aboutProg() {
-            const vh = window.innerHeight;
-            return Math.max(0, Math.min(1, (window.scrollY - vh * ABOUT_START_VH) / (vh * (ABOUT_END_VH - ABOUT_START_VH))));
+            return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * GRASS_VH)));
         }
 
         function updateGrass(prog) {
@@ -624,21 +647,27 @@
             tmy = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
-        // Nav button click handlers
+        // Nav button click handlers — scroll to section
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', e => {
                 e.preventDefault();
                 const target = btn.textContent.trim();
-                const vh = window.innerHeight;
-                if (target === 'about') {
-                    window.scrollTo({ top: vh * ABOUT_START_VH, behavior: 'smooth' });
-                } else if (target === 'project') {
-                    window.scrollTo({ top: vh * 6.2, behavior: 'smooth' });
-                } else if (target === 'contact') {
-                    window.scrollTo({ top: vh * 6.8, behavior: 'smooth' });
+                const el = document.getElementById(target);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth' });
                 }
             });
         });
+
+        // IntersectionObserver for section entrance animations
+        const sectionObserver = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.25 });
+        document.querySelectorAll('.section-inner').forEach(el => sectionObserver.observe(el));
 
         // ===================== ANIMATION =====================
         const clk = new THREE.Clock();
@@ -649,11 +678,9 @@
             const t = performance.now() * 0.001;
 
             const tp = grassProg();
-            const ap = aboutProg();
             curProg += (tp - curProg) * 3.5 * dt;
-            curAbout += (ap - curAbout) * 3.0 * dt;
             const tr = curProg * Math.PI * 2.5;
-            const idleRot = (Math.max(0, curProg - 1.0) * 7.0 + curAbout * 2.5) * 0.25;
+            const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25;
             curRot += ((tr + idleRot * (curProg >= 1.0 ? 1 : 0)) - curRot) * 2.5 * dt;
 
             // Rotate everything together — sphere + line frame + grass + rings + nodes
@@ -691,21 +718,6 @@
             ptTop.intensity = 4 + pulse * 5;
 
             scrollHint.style.opacity = curProg > 0.05 ? Math.max(0, 1 - curProg * 10) : 1;
-
-            // About section overlay
-            const aboutTarget = curAbout;
-            aboutOverlay.style.opacity = aboutTarget;
-            if (aboutTarget > 0.02) {
-                aboutOverlay.classList.add('active');
-                aboutCard.classList.add('show');
-            } else {
-                aboutOverlay.classList.remove('active');
-                aboutCard.classList.remove('show');
-            }
-
-            // Camera pulls back slightly during about phase
-            const camZ = 7.0 + curAbout * 1.2;
-            camera.position.z += (camZ - camera.position.z) * 2.5 * dt;
 
             mx += (tmx - mx) * 2.5 * dt; my += (tmy - my) * 2.5 * dt;
             camera.position.x = camBase.x + mx * 0.3;
