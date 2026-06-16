@@ -14,7 +14,7 @@
             font-family: 'Georgia', 'Noto Serif SC', 'STSong', serif;
             cursor: default;
         }
-        #canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
+        #canvas { position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; display: block; }
         #hero { height: 400vh; position: relative; }
         .header {
             position: fixed; top: 0; left: 0; width: 100%;
@@ -57,88 +57,121 @@
             50% { opacity: 1; transform: rotate(45deg) translateY(6px); }
         }
 
-        /* ====== Page Sections (overlay on 3D scene) ====== */
-        .page-section {
+        /* ====== Full-Page Sections ====== */
+        .full-page {
             position: relative; min-height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            z-index: 2;
+            background: var(--bg); overflow: hidden;
+            z-index: 1;
         }
-        .glass-card {
-            background: rgba(6, 16, 26, 0.65);
-            border: 1px solid rgba(0, 200, 140, 0.15);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-radius: 22px;
-            padding: 54px 50px;
-            max-width: 620px; width: 86vw;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(0,220,160,0.05);
-            position: relative; overflow: hidden;
+        /* Animated tech-grid background */
+        .full-page::before {
+            content: ''; position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(0,200,140,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,140,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+            pointer-events: none;
         }
-        .glass-card::before {
-            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0,220,160,0.4), transparent);
-            animation: cardShimmer 3s ease-in-out infinite;
+        @keyframes gridShift {
+            0% { transform: translate(0,0); }
+            100% { transform: translate(60px,60px); }
         }
-        @keyframes cardShimmer {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
+        /* Floating glow orbs */
+        .full-page .orb {
+            position: absolute; border-radius: 50%; pointer-events: none;
+            filter: blur(60px); opacity: 0.5;
         }
-        .section-inner { max-width: 620px; width: 100%; }
-        .section-inner h2 {
-            font-size: 2.2rem; font-weight: 700; color: #d0f0e0;
-            letter-spacing: 0.06em; margin-bottom: 18px;
-            text-shadow: 0 0 24px rgba(0,220,160,0.2);
-            opacity: 0; transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s,
-                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.1s;
+        .full-page .orb-1 {
+            width: 350px; height: 350px; top: -80px; right: -60px;
+            background: rgba(0,200,140,0.08);
+            animation: orbFloat1 12s ease-in-out infinite;
         }
-        .section-inner .subtitle {
-            font-size: 0.85rem; color: #00cc88; letter-spacing: 0.14em;
-            display: block; margin-bottom: 24px;
+        .full-page .orb-2 {
+            width: 280px; height: 280px; bottom: -60px; left: -40px;
+            background: rgba(0,100,200,0.07);
+            animation: orbFloat2 15s ease-in-out infinite;
+        }
+        @keyframes orbFloat1 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            33% { transform: translate(-40px,30px) scale(1.2); }
+            66% { transform: translate(20px,-20px) scale(0.85); }
+        }
+        @keyframes orbFloat2 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(30px,-25px) scale(1.25); }
+        }
+        /* Accent line at top */
+        .full-page .accent-line {
+            position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(0,200,140,0.3), transparent);
+            pointer-events: none;
+        }
+
+        .page-content {
+            position: relative; z-index: 1; max-width: 700px; width: 84vw;
+            padding: 60px 0;
+        }
+        .page-content .section-label {
+            display: block; font-size: 0.8rem; color: #00cc88;
+            letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px;
             opacity: 0; transform: translateY(20px);
-            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s,
-                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s;
+            transition: opacity 0.7s ease 0.05s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.05s;
         }
-        .section-inner p {
-            font-size: 1.05rem; line-height: 2; color: #a0c8b8;
+        .page-content h2 {
+            font-size: 3rem; font-weight: 700; color: #d0f0e0;
+            letter-spacing: 0.04em; margin-bottom: 28px; line-height: 1.2;
+            text-shadow: 0 0 40px rgba(0,220,160,0.15);
+            opacity: 0; transform: translateY(30px);
+            transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s;
+        }
+        .page-content p {
+            font-size: 1.08rem; line-height: 2.1; color: #90b8a8;
             letter-spacing: 0.03em; margin-bottom: 14px;
             opacity: 0; transform: translateY(24px);
-            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s,
-                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.3s;
+            transition: opacity 0.7s ease 0.3s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.3s;
         }
-        .section-inner .tag-row {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px;
+        .page-content .tag-row {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
             opacity: 0; transform: translateY(16px);
-            transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s,
-                        transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.45s;
+            transition: opacity 0.7s ease 0.45s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.45s;
         }
-        .section-inner .tag {
-            padding: 7px 18px; border-radius: 20px;
-            font-size: 0.82rem; letter-spacing: 0.05em;
-            border: 1px solid rgba(0,200,140,0.22);
-            color: #80c8a8; background: rgba(0,180,120,0.05);
-            transition: border-color 0.4s, box-shadow 0.4s;
+        .page-content .tag {
+            padding: 8px 20px; border-radius: 22px;
+            font-size: 0.85rem; letter-spacing: 0.05em;
+            border: 1px solid rgba(0,200,140,0.2);
+            color: #80c8a8; background: rgba(0,180,120,0.04);
+            transition: all 0.35s;
         }
-        .section-inner .tag:hover {
+        .page-content .tag:hover {
             border-color: rgba(0,220,160,0.5);
-            box-shadow: 0 0 16px rgba(0,200,140,0.12);
+            box-shadow: 0 0 20px rgba(0,200,140,0.1);
+            background: rgba(0,180,120,0.1);
         }
-        .section-inner.visible h2,
-        .section-inner.visible .subtitle,
-        .section-inner.visible p,
-        .section-inner.visible .tag-row { opacity: 1; transform: translateY(0); }
+        .page-content.visible .section-label,
+        .page-content.visible h2,
+        .page-content.visible p,
+        .page-content.visible .tag-row { opacity: 1; transform: translateY(0); }
 
-        #contact .section-inner { text-align: center; }
-        #contact .contact-link {
-            display: inline-block; color: #00ddbb; font-size: 1.1rem;
+        /* Contact specific */
+        #contact .page-content { text-align: center; }
+        .contact-link {
+            display: inline-block; color: #00ddbb; font-size: 1.05rem;
             text-decoration: none; letter-spacing: 0.05em;
-            padding: 12px 32px; border: 1px solid rgba(0,200,140,0.3);
-            border-radius: 30px; margin-top: 20px;
-            transition: background 0.35s, box-shadow 0.35s;
+            padding: 14px 36px; border: 1px solid rgba(0,200,140,0.3);
+            border-radius: 30px; margin-top: 24px;
+            transition: all 0.35s;
             opacity: 0; transform: translateY(20px);
         }
-        #contact .section-inner.visible .contact-link { opacity: 1; transform: translateY(0); transition: opacity 0.8s cubic-bezier(0.22,1,0.36,1) 0.5s, transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.5s, background 0.35s, box-shadow 0.35s; }
-        .contact-link:hover { background: rgba(0,200,140,0.08); box-shadow: 0 0 28px rgba(0,200,140,0.15); }
+        .page-content.visible .contact-link {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 0.7s ease 0.5s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s, background 0.35s, box-shadow 0.35s;
+        }
+        .contact-link:hover {
+            background: rgba(0,200,140,0.08);
+            box-shadow: 0 0 30px rgba(0,200,140,0.15);
+        }
     </style>
 </head>
 <body>
@@ -158,46 +191,50 @@
         </div>
     </section>
 
-    <section id="about" class="page-section">
-        <div class="glass-card">
-            <div class="section-inner">
-                <h2>关于我</h2>
-                <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
-                <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
-                <div class="tag-row">
-                    <span class="tag">Three.js</span>
-                    <span class="tag">WebGL</span>
-                    <span class="tag">UI/UX</span>
-                    <span class="tag">创意编程</span>
-                    <span class="tag">生成艺术</span>
-                </div>
+    <section id="about" class="full-page">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
+        <div class="page-content">
+            <span class="section-label">About</span>
+            <h2>关于我</h2>
+            <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
+            <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
+            <div class="tag-row">
+                <span class="tag">Three.js</span>
+                <span class="tag">WebGL</span>
+                <span class="tag">UI/UX</span>
+                <span class="tag">创意编程</span>
+                <span class="tag">生成艺术</span>
             </div>
         </div>
     </section>
 
-    <section id="project" class="page-section">
-        <div class="glass-card">
-            <div class="section-inner">
-                <span class="subtitle">作品展示</span>
-                <h2>项目</h2>
-                <p>这里将展示我的代表作品，包括 3D 交互、创意网站与生成式视觉项目。敬请期待。</p>
-                <div class="tag-row">
-                    <span class="tag">作品一</span>
-                    <span class="tag">作品二</span>
-                    <span class="tag">作品三</span>
-                </div>
+    <section id="project" class="full-page">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
+        <div class="page-content">
+            <span class="section-label">Projects</span>
+            <h2>项目作品</h2>
+            <p>这里将展示我的代表作品，包括 3D 交互、创意网站与生成式视觉项目。敬请期待。</p>
+            <div class="tag-row">
+                <span class="tag">作品一</span>
+                <span class="tag">作品二</span>
+                <span class="tag">作品三</span>
             </div>
         </div>
     </section>
 
-    <section id="contact" class="page-section">
-        <div class="glass-card">
-            <div class="section-inner">
-                <span class="subtitle">与我联系</span>
-                <h2>Contact</h2>
-                <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
-                <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
-            </div>
+    <section id="contact" class="full-page">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
+        <div class="page-content">
+            <span class="section-label">Contact</span>
+            <h2>联系我</h2>
+            <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
+            <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
         </div>
     </section>
 
@@ -645,20 +682,13 @@
         }
 
         // ===================== STATE =====================
-        let curProg = 0, curRot = 0, curPhase = 0;
+        let curProg = 0, curRot = 0;
         let mx = 0, my = 0, tmx = 0, tmy = 0;
 
         const GRASS_VH = 4.0;
-        const CONTENT_VH = 5.8; // point where content is fully visible
 
         function grassProg() {
             return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * GRASS_VH)));
-        }
-
-        function contentPhase() {
-            // 0 = in grass zone, 1 = fully in content zone
-            const vh = window.innerHeight;
-            return Math.max(0, Math.min(1, (window.scrollY - vh * (GRASS_VH - 0.5)) / (vh * 1.5)));
         }
 
         function updateGrass(prog) {
@@ -704,7 +734,7 @@
                 }
             });
         }, { threshold: 0.25 });
-        document.querySelectorAll('.section-inner').forEach(el => sectionObserver.observe(el));
+        document.querySelectorAll('.page-content').forEach(el => sectionObserver.observe(el));
 
         // ===================== ANIMATION =====================
         const clk = new THREE.Clock();
@@ -715,11 +745,9 @@
             const t = performance.now() * 0.001;
 
             const tp = grassProg();
-            const cp = contentPhase();
             curProg += (tp - curProg) * 3.5 * dt;
-            curPhase += (cp - curPhase) * 2.5 * dt;
             const tr = curProg * Math.PI * 2.5;
-            const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25 + curPhase * 1.5;
+            const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25;
             curRot += ((tr + idleRot * (curProg >= 1.0 ? 1 : 0)) - curRot) * 2.5 * dt;
 
             // Rotate everything together — sphere + line frame + grass + rings + nodes
@@ -730,22 +758,13 @@
             const soilTarget = 0.06 + curProg * 0.94;
             soilMat.opacity += (soilTarget - soilMat.opacity) * 4.0 * dt;
 
-            // 3D scene dims during content phase
-            const dimFactor = 1 - curPhase * 0.45;
-            renderer.toneMappingExposure = 1.05 * dimFactor;
-            scene.fog = new THREE.Fog(BG, 8 - curPhase * 3, 28 - curPhase * 8);
-            ptBottom.intensity = (10 + Math.sin(t * 2.0) * 0.45 * 8) * dimFactor;
-            ptTop.intensity = (4 + Math.sin(t * 2.0) * 0.45 * 5) * dimFactor;
-            key.intensity = 6.0 * dimFactor;
-            rim.intensity = 2.2 * dimFactor;
-
             updateGrass(curProg);
 
             // Scanner ring oscillation (dims in content phase)
             const scanY = -2.5 + Math.sin(t * 0.8) * 3.5;
             scanRing.position.y = scanY;
             scanRing.scale.setScalar(1 + Math.abs(Math.sin(t * 0.8)) * 0.3);
-            scanMat.opacity = (0.25 + Math.abs(Math.cos(t * 0.8)) * 0.3) * (1 - curPhase * 0.6);
+            scanMat.opacity = 0.25 + Math.abs(Math.cos(t * 0.8)) * 0.3;
 
             // Tech particles
             for (const p of techParts) {
@@ -760,13 +779,17 @@
                 p.position.x = Math.cos(a) * r; p.position.z = Math.sin(a) * r;
             }
 
+            // Pulsing lights
+            const pulse = 0.55 + Math.sin(t * 2.0) * 0.45;
+            ptBottom.intensity = 10 + pulse * 8;
+            ptTop.intensity = 4 + pulse * 5;
+
             scrollHint.style.opacity = curProg > 0.05 ? Math.max(0, 1 - curProg * 10) : 1;
 
             mx += (tmx - mx) * 2.5 * dt; my += (tmy - my) * 2.5 * dt;
-            const targetZ = camBase.z + curPhase * 1.8;
-            camera.position.z += (targetZ - camera.position.z) * 2.0 * dt;
-            camera.position.x += ((camBase.x + mx * 0.3) - camera.position.x) * 2.5 * dt;
-            camera.position.y += ((camBase.y + my * 0.22) - camera.position.y) * 2.5 * dt;
+            camera.position.x = camBase.x + mx * 0.3;
+            camera.position.y = camBase.y + my * 0.22;
+            camera.position.z = camBase.z;
             camera.lookAt(0, 0, 0);
 
             renderer.render(scene, camera);
