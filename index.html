@@ -18,24 +18,31 @@
         #hero { height: 400vh; position: relative; }
         .header {
             position: fixed; top: 0; left: 0; width: 100%;
-            padding: 28px 40px; display: flex;
-            justify-content: space-between; align-items: flex-start;
+            padding: 20px 40px; display: flex;
+            justify-content: space-between; align-items: center;
             z-index: 10; pointer-events: none;
+            background: rgba(5,10,16,0.94);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,200,140,0.06);
+            height: 60px;
         }
         .logo {
-            font-size: 1.25rem; font-weight: 700; color: #a0d8c0;
+            font-size: 1.2rem; font-weight: 700; color: #a0d8c0;
             letter-spacing: 0.06em; text-shadow: 0 0 24px rgba(0,220,160,0.3);
-            pointer-events: auto;
+            pointer-events: auto; line-height: 1;
         }
         .nav { display: flex; gap: 32px; pointer-events: auto; }
         .nav-btn {
-            position: relative; display: inline-block; font-size: 0.95rem;
+            position: relative; display: inline-block; font-size: 0.9rem;
             font-family: 'Georgia', 'Noto Serif SC', serif; color: #80b8a0;
             text-decoration: none; letter-spacing: 0.08em; text-transform: lowercase;
             cursor: pointer; user-select: none;
             transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), color 0.35s ease;
         }
-        .nav-btn:hover { color: #00eebb; transform: translateY(-4px) scale(1.12); }
+        .nav-btn:hover { color: #00eebb; transform: translateY(-2px) scale(1.08); }
+        .nav-btn.active { color: #00eebb; text-shadow: 0 0 12px rgba(0,220,160,0.4); }
+        .nav-btn.active::after { width: 100%; }
         .nav-btn::after {
             content: ''; position: absolute; left: 0; bottom: -4px;
             width: 0; height: 1px; background: #00ddbb; transition: width 0.35s ease;
@@ -841,7 +848,44 @@
                 }
             });
         }, { threshold: 0.25 });
-        document.querySelectorAll('.page-content,.project-info,.carousel-viewport').forEach(el => sectionObserver.observe(el));
+        document.querySelectorAll('.page-content,.project-text').forEach(el => sectionObserver.observe(el));
+
+        // Track active section for nav highlight
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const sections = ['about', 'project', 'contact'];
+        const sectionEls = sections.map(id => document.getElementById(id));
+        const heroEl = document.getElementById('hero');
+        const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 4;
+
+        function updateActiveNav() {
+            const sy = window.scrollY + window.innerHeight * 0.35;
+            let active = null;
+
+            // Check if still in hero
+            if (window.scrollY + window.innerHeight * 0.5 < heroEnd()) {
+                active = null; // hero zone: no button active
+            } else {
+                // Find which section the viewport center is in
+                for (let i = sections.length - 1; i >= 0; i--) {
+                    const el = sectionEls[i];
+                    if (!el) continue;
+                    const top = el.offsetTop;
+                    if (sy >= top) {
+                        active = sections[i];
+                        break;
+                    }
+                }
+            }
+
+            navBtns.forEach(btn => {
+                const target = btn.textContent.trim();
+                btn.classList.toggle('active', target === active);
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveNav);
+        window.addEventListener('resize', updateActiveNav);
+        updateActiveNav();
 
         // ===================== IMAGE STRIP =====================
         (function imgStrip() {
