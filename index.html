@@ -9,7 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--bg);
-            height: 500vh; overflow-x: hidden;
+            height: 700vh; overflow-x: hidden;
             overscroll-behavior: none;
             font-family: 'Georgia', 'Noto Serif SC', 'STSong', serif;
             cursor: default;
@@ -55,6 +55,56 @@
             0%, 100% { opacity: 0.3; transform: rotate(45deg) translateY(0); }
             50% { opacity: 1; transform: rotate(45deg) translateY(6px); }
         }
+
+        /* ====== Section Overlays ====== */
+        .section-overlay {
+            position: fixed; inset: 0; z-index: 5;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.7s ease;
+        }
+        .section-overlay.active { pointer-events: auto; }
+        .section-card {
+            background: rgba(8, 20, 32, 0.72);
+            border: 1px solid rgba(0, 200, 140, 0.18);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-radius: 20px;
+            padding: 56px 52px; max-width: 600px; width: 88vw;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(0,220,160,0.06);
+        }
+        .section-card h2 {
+            font-size: 2rem; font-weight: 700; color: #d0f0e0;
+            letter-spacing: 0.06em; margin-bottom: 24px;
+            text-shadow: 0 0 20px rgba(0,220,160,0.25);
+            opacity: 0; transform: translateY(24px);
+            transition: opacity 0.9s ease 0.15s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s;
+        }
+        .section-card p {
+            font-size: 1.05rem; line-height: 1.9; color: #a0c8b8;
+            letter-spacing: 0.03em;
+            opacity: 0; transform: translateY(20px);
+            transition: opacity 0.9s ease 0.35s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.35s;
+        }
+        .section-card .tag-row {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px;
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s;
+        }
+        .section-card .tag {
+            padding: 6px 16px; border-radius: 20px;
+            font-size: 0.8rem; letter-spacing: 0.05em;
+            border: 1px solid rgba(0,200,140,0.25);
+            color: #80c8a8; background: rgba(0,180,120,0.06);
+        }
+        .section-card.show h2,
+        .section-card.show p,
+        .section-card.show .tag-row { opacity: 1; transform: translateY(0); }
+
+        @keyframes floatUp {
+            0% { opacity: 0; transform: translateY(40px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -70,6 +120,22 @@
     <div class="scroll-hint" id="scrollHint">
         <span>下滑探索</span>
         <div class="scroll-arrow"></div>
+    </div>
+
+    <!-- About Section Overlay -->
+    <div class="section-overlay" id="aboutOverlay">
+        <div class="section-card" id="aboutCard">
+            <h2>关于我</h2>
+            <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
+            <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
+            <div class="tag-row">
+                <span class="tag">Three.js</span>
+                <span class="tag">WebGL</span>
+                <span class="tag">UI/UX</span>
+                <span class="tag">创意编程</span>
+                <span class="tag">生成艺术</span>
+            </div>
+        </div>
     </div>
 
     <script type="importmap">
@@ -210,7 +276,7 @@
             const x = posArr.getX(i), y = posArr.getY(i), z = posArr.getZ(i);
             const len = Math.sqrt(x * x + y * y + z * z);
             const nx = x / len, ny = y / len, nz = z / len;
-            const disp = n3(nx, ny, nz, 4.0, 0.04) + n3(nx, ny, nz, 10.0, 0.022) + n3(nx, ny, nz, 22.0, 0.01);
+            const disp = n3(nx, ny, nz, 4.0, 0.12) + n3(nx, ny, nz, 10.0, 0.065) + n3(nx, ny, nz, 22.0, 0.032);
             posArr.setXYZ(i, nx * (len + disp), ny * (len + disp), nz * (len + disp));
         }
         sphereGeo.computeVertexNormals();
@@ -516,10 +582,24 @@
         }
 
         // ===================== STATE =====================
-        let curProg = 0, curRot = 0;
+        let curProg = 0, curRot = 0, curAbout = 0;
         let mx = 0, my = 0, tmx = 0, tmy = 0;
 
-        function scrollProg() { return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * 4))); }
+        const GRASS_END_VH = 4.0;   // grass fully grown at 400vh
+        const ABOUT_START_VH = 4.0; // about section starts at 400vh
+        const ABOUT_END_VH = 5.8;   // about section fully visible at 580vh
+
+        const aboutOverlay = document.getElementById('aboutOverlay');
+        const aboutCard = document.getElementById('aboutCard');
+
+        function grassProg() {
+            return Math.max(0, Math.min(1, window.scrollY / (window.innerHeight * GRASS_END_VH)));
+        }
+
+        function aboutProg() {
+            const vh = window.innerHeight;
+            return Math.max(0, Math.min(1, (window.scrollY - vh * ABOUT_START_VH) / (vh * (ABOUT_END_VH - ABOUT_START_VH))));
+        }
 
         function updateGrass(prog) {
             for (let m = 0; m < meshes.length; m++) {
@@ -544,6 +624,22 @@
             tmy = -(e.clientY / window.innerHeight) * 2 + 1;
         });
 
+        // Nav button click handlers
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const target = btn.textContent.trim();
+                const vh = window.innerHeight;
+                if (target === 'about') {
+                    window.scrollTo({ top: vh * ABOUT_START_VH, behavior: 'smooth' });
+                } else if (target === 'project') {
+                    window.scrollTo({ top: vh * 6.2, behavior: 'smooth' });
+                } else if (target === 'contact') {
+                    window.scrollTo({ top: vh * 6.8, behavior: 'smooth' });
+                }
+            });
+        });
+
         // ===================== ANIMATION =====================
         const clk = new THREE.Clock();
 
@@ -552,10 +648,13 @@
             const dt = Math.min(clk.getDelta(), 0.1);
             const t = performance.now() * 0.001;
 
-            const tp = scrollProg();
+            const tp = grassProg();
+            const ap = aboutProg();
             curProg += (tp - curProg) * 3.5 * dt;
+            curAbout += (ap - curAbout) * 3.0 * dt;
             const tr = curProg * Math.PI * 2.5;
-            curRot += (tr - curRot) * 2.5 * dt;
+            const idleRot = (Math.max(0, curProg - 1.0) * 7.0 + curAbout * 2.5) * 0.25;
+            curRot += ((tr + idleRot * (curProg >= 1.0 ? 1 : 0)) - curRot) * 2.5 * dt;
 
             // Rotate everything together — sphere + line frame + grass + rings + nodes
             rotGroup.rotation.y = curRot;
@@ -592,6 +691,21 @@
             ptTop.intensity = 4 + pulse * 5;
 
             scrollHint.style.opacity = curProg > 0.05 ? Math.max(0, 1 - curProg * 10) : 1;
+
+            // About section overlay
+            const aboutTarget = curAbout;
+            aboutOverlay.style.opacity = aboutTarget;
+            if (aboutTarget > 0.02) {
+                aboutOverlay.classList.add('active');
+                aboutCard.classList.add('show');
+            } else {
+                aboutOverlay.classList.remove('active');
+                aboutCard.classList.remove('show');
+            }
+
+            // Camera pulls back slightly during about phase
+            const camZ = 7.0 + curAbout * 1.2;
+            camera.position.z += (camZ - camera.position.z) * 2.5 * dt;
 
             mx += (tmx - mx) * 2.5 * dt; my += (tmy - my) * 2.5 * dt;
             camera.position.x = camBase.x + mx * 0.3;
