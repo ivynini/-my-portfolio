@@ -61,8 +61,8 @@
     <header class="header">
         <div class="logo">丁羽微的作品集</div>
         <nav class="nav">
-            <a href="#" class="nav-btn">project</a>
             <a href="#" class="nav-btn">about</a>
+            <a href="#" class="nav-btn">project</a>
             <a href="#" class="nav-btn">contact</a>
         </nav>
     </header>
@@ -196,7 +196,25 @@
         }
 
         // Soil sphere (starts transparent, becomes opaque with scroll)
-        const sphereGeo = new THREE.SphereGeometry(R * 0.994, 140, 140);
+        // Multi-octave vertex displacement for bumpy surface
+        const sphereGeo = new THREE.SphereGeometry(R * 0.994, 150, 150);
+        const posArr = sphereGeo.attributes.position;
+        const VC = posArr.count;
+
+        function n3(x, y, z, f, a) {
+            return a * (Math.sin(x * f + y * 1.5) * Math.cos(y * f - z * 0.9) * Math.sin(z * f + x * 0.7) +
+                Math.cos(x * f * 1.6 - y * 0.5) * Math.sin(z * f * 1.3 + x * 1.2) * Math.cos(y * f * 0.8 + z * 1.4)) * 0.33;
+        }
+
+        for (let i = 0; i < VC; i++) {
+            const x = posArr.getX(i), y = posArr.getY(i), z = posArr.getZ(i);
+            const len = Math.sqrt(x * x + y * y + z * z);
+            const nx = x / len, ny = y / len, nz = z / len;
+            const disp = n3(nx, ny, nz, 4.0, 0.04) + n3(nx, ny, nz, 10.0, 0.022) + n3(nx, ny, nz, 22.0, 0.01);
+            posArr.setXYZ(i, nx * (len + disp), ny * (len + disp), nz * (len + disp));
+        }
+        sphereGeo.computeVertexNormals();
+
         const soilMat = new THREE.MeshStandardMaterial({
             map: createSoilTex(),
             roughness: 0.9,
