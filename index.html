@@ -1056,6 +1056,7 @@
 
             // Stack mode state
             let stackActive = false;
+            let stackDelay = 0;                         // brief delay before cards slide in
             let stackOffsets = [0, 0, 0, 0, 0];       // current horizontal offset per image (px)
             let stackTargets = [0, 0, 0, 0, 0];       // target offsets
             let stackDarks = [0, 0, 0, 0, 0];         // darkness overlay per image
@@ -1159,14 +1160,14 @@
                 draw();
             }
 
-            // ---- Scroll progress (completes earlier) ----
+            // ---- Scroll progress (puzzle assembles over scroll) ----
             function getScrollProgress() {
                 const st = section.offsetTop;
                 const sh = section.offsetHeight;
                 const wh = window.innerHeight;
                 const sy = window.scrollY;
-                // Progress 1.0 when section is ~60% in viewport
-                const raw = (sy + wh - st) / (sh * 0.5 + wh * 0.22);
+                // Progress reaches 1.0 when ~65% of section has scrolled into view
+                const raw = (sy + wh - st) / (sh * 0.65);
                 return Math.max(0, Math.min(1, raw));
             }
 
@@ -1184,22 +1185,20 @@
             }
 
             function recalcStackTargets() {
-                // Order behind current: left-near, right-near, left-far, right-far
-                // Image indices: (curIdx-2, curIdx-1, curIdx+1, curIdx+2) mod 5
+                // Positions relative to current image: left-far, left-near, right-near, right-far
                 const map = [
-                    { rel: -2, peek: -0.82, dark: 0.55 },
-                    { rel: -1, peek: -0.58, dark: 0.32 },
-                    { rel: +1, peek: +0.58, dark: 0.32 },
-                    { rel: +2, peek: +0.82, dark: 0.55 },
+                    { rel: -2, peek: -0.68, dark: 0.38 },
+                    { rel: -1, peek: -0.40, dark: 0.16 },
+                    { rel: +1, peek: +0.40, dark: 0.16 },
+                    { rel: +2, peek: +0.68, dark: 0.38 },
                 ];
                 for (let i = 0; i < IMG_COUNT; i++) {
                     if (i === curIdx) {
                         stackTargets[i] = 0;
                         stackDarks[i] = 0;
                     } else {
-                        // Default: off-screen right
                         stackTargets[i] = 9999;
-                        stackDarks[i] = 0.65;
+                        stackDarks[i] = 0.6;
                         for (const m of map) {
                             if (i === ((curIdx + m.rel + IMG_COUNT) % IMG_COUNT)) {
                                 const L = imgLayout(i);
@@ -1216,11 +1215,20 @@
             function enterStack() {
                 if (stackActive) return;
                 stackActive = true;
-                // Initialize all offsets off-screen, current at center
-                for (let i = 0; i < IMG_COUNT; i++) {
-                    stackOffsets[i] = (i === curIdx) ? 0 : 9999;
-                }
                 recalcStackTargets();
+                for (let i = 0; i < IMG_COUNT; i++) {
+                    if (i === curIdx) {
+                        stackOffsets[i] = 0;
+                    } else {
+                        const L = imgLayout(i);
+                        const extra = L ? L.sw * 0.45 : 200;
+                        if (stackTargets[i] > 0) {
+                            stackOffsets[i] = stackTargets[i] + extra;
+                        } else {
+                            stackOffsets[i] = stackTargets[i] - extra;
+                        }
+                    }
+                }
             }
 
             function exitStack() {
@@ -1324,9 +1332,19 @@
                     if (!L) continue;
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
+                    const isCurrent = i === curIdx;
 
-                    // Dark overlay on non-current images
-                    if (i !== curIdx) {
+                    if (!isCurrent) {
+                        // Card shadow behind peek images
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+                        ctx.shadowBlur = 16;
+                        ctx.shadowOffsetX = (stackOffsets[i] > 0 ? -4 : 4);
+                        ctx.fillStyle = '#0a0a0a';
+                        ctx.fillRect(x, y, L.sw, L.sh);
+                        ctx.restore();
+
+                        // Dark overlay
                         ctx.save();
                         ctx.globalAlpha = stackDarks[i];
                         ctx.fillStyle = '#050a10';
@@ -1334,23 +1352,25 @@
                         ctx.restore();
                     }
 
-                    // Draw image (peek images slightly dimmed)
-                    const alpha = i === curIdx ? 1 : 0.78 - stackDarks[i] * 0.3;
+                    // Draw image
+                    const alpha = isCurrent ? 1 : 0.88 - stackDarks[i] * 0.4;
                     ctx.save();
                     ctx.globalAlpha = alpha;
                     ctx.drawImage(L.img, x, y, L.sw, L.sh);
                     ctx.restore();
 
-                    // Glow border on current
-                    if (i === curIdx) {
-                        ctx.save();
-                        ctx.strokeStyle = 'rgba(0, 220, 160, 0.42)';
-                        ctx.lineWidth = 2;
-                        ctx.shadowColor = 'rgba(0, 200, 140, 0.55)';
-                        ctx.shadowBlur = 20;
-                        ctx.strokeRect(x, y, L.sw, L.sh);
-                        ctx.restore();
+                    // Border on every card
+                    ctx.save();
+                    ctx.strokeStyle = isCurrent
+                        ? 'rgba(0, 220, 160, 0.5)'
+                        : 'rgba(0, 200, 140, 0.2)';
+                    ctx.lineWidth = isCurrent ? 2 : 1;
+                    if (isCurrent) {
+                        ctx.shadowColor = 'rgba(0, 200, 140, 0.45)';
+                        ctx.shadowBlur = 18;
                     }
+                    ctx.strokeRect(x, y, L.sw, L.sh);
+                    ctx.restore();
                 }
             }
 
@@ -1393,9 +1413,14 @@
 
                 // Handle stack mode enter/exit
                 if (!switching && targetProgress >= 1.0 && !stackActive) {
-                    enterStack();
-                } else if (!switching && targetProgress < 0.88 && stackActive) {
+                    stackDelay += 0.016;
+                    if (stackDelay > 0.45) enterStack();
+                } else if (!switching && targetProgress < 1.0 && !stackActive) {
+                    stackDelay = 0;
+                }
+                if (!switching && targetProgress < 0.82 && stackActive) {
                     exitStack();
+                    stackDelay = 0;
                 }
 
                 // Lerp progress (puzzle mode)
