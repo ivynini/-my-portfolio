@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>丁羽微的作品集</title>
     <style>
-        :root { --bg: #e8f0e0; }
+        :root { --bg: #060a0f; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -22,7 +22,6 @@
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             z-index: 0;
-            pointer-events: none;
         }
 
         .header {
@@ -40,9 +39,9 @@
         .logo {
             font-size: 1.25rem;
             font-weight: 700;
-            color: #3a4a2a;
+            color: #a0d8c0;
             letter-spacing: 0.06em;
-            text-shadow: 0 0 20px rgba(80,110,50,0.25);
+            text-shadow: 0 0 24px rgba(0,220,160,0.3);
             pointer-events: auto;
         }
 
@@ -57,7 +56,7 @@
             display: inline-block;
             font-size: 0.95rem;
             font-family: 'Georgia', 'Noto Serif SC', serif;
-            color: #5a7a4a;
+            color: #80b8a0;
             text-decoration: none;
             letter-spacing: 0.08em;
             text-transform: lowercase;
@@ -68,7 +67,7 @@
         }
 
         .nav-btn:hover {
-            color: #2a3a1a;
+            color: #00eebb;
             transform: translateY(-4px) scale(1.12);
         }
 
@@ -77,7 +76,7 @@
             position: absolute;
             left: 0; bottom: -4px;
             width: 0; height: 1px;
-            background: #5a7a4a;
+            background: #00ddbb;
             transition: width 0.35s ease;
         }
 
@@ -98,14 +97,14 @@
 
         .scroll-hint span {
             font-size: 0.7rem;
-            color: #7a8a6a;
+            color: #608070;
             letter-spacing: 0.12em;
         }
 
         .scroll-arrow {
             width: 20px; height: 20px;
-            border-right: 1px solid #7a8a6a;
-            border-bottom: 1px solid #7a8a6a;
+            border-right: 1px solid #608070;
+            border-bottom: 1px solid #608070;
             transform: rotate(45deg);
             animation: scrollPulse 2s ease-in-out infinite;
         }
@@ -121,9 +120,9 @@
     <header class="header">
         <div class="logo">丁羽微的作品集</div>
         <nav class="nav">
-            <a href="#" class="nav-btn" data-text="project">project</a>
-            <a href="#" class="nav-btn" data-text="about">about</a>
-            <a href="#" class="nav-btn" data-text="contact">contact</a>
+            <a href="#" class="nav-btn">project</a>
+            <a href="#" class="nav-btn">about</a>
+            <a href="#" class="nav-btn">contact</a>
         </nav>
     </header>
 
@@ -151,263 +150,256 @@
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.05;
+        renderer.toneMappingExposure = 1.1;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         // ===================== SCENE =====================
-        const BG = '#e8f0e0';
+        const BG = '#060a0f';
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(BG);
-        scene.fog = new THREE.Fog(BG, 7, 24);
+        scene.fog = new THREE.Fog(BG, 8, 25);
 
-        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.5, 50);
-        const camBase = { x: 0, y: 0.5, z: 7.5 };
+        const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.3, 50);
+        const camBase = { x: 0, y: 0.4, z: 7.5 };
         camera.position.set(camBase.x, camBase.y, camBase.z);
-        camera.lookAt(0, -0.15, 0);
+        camera.lookAt(0, -0.1, 0);
 
         // ===================== LIGHTING =====================
-        scene.add(new THREE.AmbientLight('#d5e8d0', 2.6));
+        scene.add(new THREE.AmbientLight('#1a2a30', 2.0));
 
-        const sun = new THREE.DirectionalLight('#fffdf5', 6.8);
-        sun.position.set(6, 9, 5);
-        sun.castShadow = true;
-        sun.shadow.mapSize.set(2048, 2048);
-        sun.shadow.camera.near = 0.3;
-        sun.shadow.camera.far = 35;
-        sun.shadow.camera.left = -9;
-        sun.shadow.camera.right = 9;
-        sun.shadow.camera.top = 9;
-        sun.shadow.camera.bottom = -9;
-        sun.shadow.bias = -0.0002;
-        sun.shadow.normalBias = 0.03;
-        scene.add(sun);
+        const key = new THREE.DirectionalLight('#e8fff8', 5.5);
+        key.position.set(5, 7, 5);
+        key.castShadow = true;
+        key.shadow.mapSize.set(2048, 2048);
+        key.shadow.camera.near = 0.3;
+        key.shadow.camera.far = 30;
+        key.shadow.camera.left = -7; key.shadow.camera.right = 7;
+        key.shadow.camera.top = 7; key.shadow.camera.bottom = -7;
+        key.shadow.bias = -0.00015;
+        key.shadow.normalBias = 0.03;
+        scene.add(key);
 
-        scene.add(new THREE.DirectionalLight('#b8d4c0', 1.6)).position.set(-3, 1, -5);
-        scene.add(new THREE.DirectionalLight('#c8d8b8', 1.4)).position.set(0, -1.5, 2);
+        const rim = new THREE.DirectionalLight('#4488aa', 2.0);
+        rim.position.set(-4, 1, -4);
+        scene.add(rim);
+
+        const fill = new THREE.DirectionalLight('#223344', 1.2);
+        fill.position.set(0, -1.5, 3);
+        scene.add(fill);
+
+        // Subtle blue accent from below
+        const accent = new THREE.PointLight('#0066cc', 12, 8, 1.5);
+        accent.position.set(0, -2.5, 0);
+        scene.add(accent);
 
         // Shadow catcher
         const ground = new THREE.Mesh(
-            new THREE.PlaneGeometry(22, 22),
-            new THREE.ShadowMaterial({ opacity: 0.22 })
+            new THREE.PlaneGeometry(20, 20),
+            new THREE.ShadowMaterial({ opacity: 0.2 })
         );
         ground.rotation.x = -Math.PI / 2;
-        ground.position.y = -4;
+        ground.position.y = -3.5;
         ground.receiveShadow = true;
         scene.add(ground);
 
-        // ===================== SOIL TEXTURE =====================
-        function createSoilTexture() {
-            const S = 1024;
+        // ===================== SPHERE RADIUS =====================
+        const R = 1.8;
+
+        // ===================== INNER CORE (grass substrate) =====================
+        const coreR = R * 0.92;
+        const coreGeo = new THREE.SphereGeometry(coreR, 128, 128);
+
+        // Procedural dark substrate texture
+        function createSubstrateTex() {
+            const S = 512;
             const c = document.createElement('canvas');
             c.width = S; c.height = S;
             const ctx = c.getContext('2d');
-
-            // Multi-stop gradient for rich soil
-            const g = ctx.createRadialGradient(S * 0.38, S * 0.35, S * 0.02, S / 2, S / 2, S * 0.55);
-            g.addColorStop(0, '#A89070');
-            g.addColorStop(0.12, '#9B8365');
-            g.addColorStop(0.28, '#8B6E50');
-            g.addColorStop(0.45, '#7A5938');
-            g.addColorStop(0.6, '#6B4A28');
-            g.addColorStop(0.76, '#5C3A1A');
-            g.addColorStop(0.9, '#4A2A10');
-            g.addColorStop(1, '#382008');
-            ctx.fillStyle = g;
+            ctx.fillStyle = '#1a2a18';
             ctx.fillRect(0, 0, S, S);
 
-            // Fine grain
             const img = ctx.getImageData(0, 0, S, S);
-            const d = img.data;
-            for (let i = 0; i < d.length; i += 4) {
-                const n = (Math.random() - 0.5) * 30;
-                d[i] = Math.min(255, Math.max(0, d[i] + n));
-                d[i + 1] = Math.min(255, Math.max(0, d[i + 1] + n * 0.6));
-                d[i + 2] = Math.min(255, Math.max(0, d[i + 2] + n * 0.3));
+            for (let i = 0; i < img.data.length; i += 4) {
+                const n = (Math.random() - 0.5) * 20;
+                img.data[i] = Math.min(255, Math.max(0, img.data[i] + n));
+                img.data[i + 1] = Math.min(255, Math.max(0, img.data[i + 1] + n));
+                img.data[i + 2] = Math.min(255, Math.max(0, img.data[i + 2] + n * 0.5));
             }
             ctx.putImageData(img, 0, 0);
 
-            // Dark humus patches (irregular)
             for (let i = 0; i < 100; i++) {
                 const x = Math.random() * S, y = Math.random() * S;
-                const rx = 4 + Math.random() * 22, ry = rx * (0.5 + Math.random());
-                ctx.fillStyle = `rgba(15,8,0,${0.12 + Math.random() * 0.22})`;
-                ctx.beginPath();
-                ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // Mineral grains
-            for (let i = 0; i < 500; i++) {
-                const b = 150 + Math.random() * 95;
-                ctx.fillStyle = `rgba(${b},${b * 0.82},${b * 0.55},${0.06 + Math.random() * 0.14})`;
-                ctx.fillRect(Math.random() * S, Math.random() * S, 1 + Math.random() * 3, 1 + Math.random() * 3);
-            }
-
-            // Fissures
-            ctx.strokeStyle = 'rgba(20,10,2,0.28)';
-            ctx.lineWidth = 0.5;
-            for (let i = 0; i < 45; i++) {
-                ctx.beginPath();
-                let cx = Math.random() * S, cy = Math.random() * S;
-                ctx.moveTo(cx, cy);
-                const steps = 3 + Math.floor(Math.random() * 7);
-                for (let j = 0; j < steps; j++) {
-                    cx += (Math.random() - 0.5) * 70;
-                    cy += (Math.random() - 0.5) * 70;
-                    ctx.lineTo(cx, cy);
-                }
-                ctx.stroke();
-            }
-
-            // Subtle moss
-            for (let i = 0; i < 30; i++) {
-                const x = Math.random() * S, y = Math.random() * S;
-                const r = 8 + Math.random() * 20;
-                const mg = ctx.createRadialGradient(x, y, 0, x, y, r);
-                mg.addColorStop(0, 'rgba(70,110,35,0.10)');
-                mg.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = mg;
+                const r = 3 + Math.random() * 15;
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, 'rgba(30,50,25,0.4)');
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
                 ctx.fillRect(x - r, y - r, r * 2, r * 2);
             }
 
             const tex = new THREE.CanvasTexture(c);
             tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
             tex.colorSpace = THREE.SRGBColorSpace;
-            tex.anisotropy = 4;
             return tex;
         }
 
-        // ===================== SPHERE =====================
-        const R = 1.8;
-        const geo = new THREE.SphereGeometry(R, 180, 180);
-        const pos = geo.attributes.position;
-        const V = pos.count;
+        const core = new THREE.Mesh(coreGeo, new THREE.MeshStandardMaterial({
+            map: createSubstrateTex(),
+            roughness: 0.9,
+            metalness: 0.05,
+            color: new THREE.Color('#2a3a25'),
+        }));
+        core.castShadow = true;
+        core.receiveShadow = true;
+        scene.add(core);
 
-        // Better multi-octave noise
-        function n3d(x, y, z, f, a) {
-            let v = 0;
-            v += Math.sin(x * f + y * 1.7) * Math.cos(y * f - z * 1.1) * Math.sin(z * f + x * 0.8);
-            v += Math.cos(x * f * 1.8 - y * 0.5) * Math.sin(z * f * 1.5 + x * 1.3) * Math.cos(y * f * 0.7 + z * 1.6);
-            v += Math.sin(x * f * 0.6 + z * 2.1) * Math.cos(y * f * 2.3 - x * 0.4) * Math.sin(z * f * 0.9 + y * 1.8);
-            return a * v * 0.33;
-        }
-
-        const displacement = new Float32Array(V);
-
-        for (let i = 0; i < V; i++) {
-            const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-            const len = Math.sqrt(x * x + y * y + z * z);
-            const nx = x / len, ny = y / len, nz = z / len;
-
-            const d =
-                n3d(nx, ny, nz, 3.0, 0.15) +
-                n3d(nx, ny, nz, 6.5, 0.09) +
-                n3d(nx, ny, nz, 12.0, 0.05) +
-                n3d(nx, ny, nz, 20.0, 0.028) +
-                n3d(nx, ny, nz, 33.0, 0.014) +
-                n3d(nx, ny, nz, 50.0, 0.007);
-
-            displacement[i] = d;
-            const nl = len + d;
-            pos.setXYZ(i, nx * nl, ny * nl, nz * nl);
-        }
-        geo.computeVertexNormals();
-        geo.attributes.position.needsUpdate = true;
-
-        // Surface data
+        // Store core surface data for grass placement
+        const corePos = coreGeo.attributes.position;
+        const coreV = corePos.count;
         const surfP = [], surfN = [];
-        for (let i = 0; i < V; i++) {
-            surfP.push(new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)));
+        coreGeo.computeVertexNormals();
+        for (let i = 0; i < coreV; i++) {
+            surfP.push(new THREE.Vector3(corePos.getX(i), corePos.getY(i), corePos.getZ(i)));
             surfN.push(new THREE.Vector3(
-                geo.attributes.normal.getX(i),
-                geo.attributes.normal.getY(i),
-                geo.attributes.normal.getZ(i)
+                coreGeo.attributes.normal.getX(i),
+                coreGeo.attributes.normal.getY(i),
+                coreGeo.attributes.normal.getZ(i)
             ).normalize());
         }
 
-        const sphere = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
-            map: createSoilTexture(),
-            roughness: 0.9,
-            metalness: 0.0,
-            color: new THREE.Color('#c8b090'),
-        }));
-        sphere.castShadow = true;
-        sphere.receiveShadow = true;
-        scene.add(sphere);
+        // ===================== TECH WIREFRAME SPHERE =====================
+        const wireGroup = new THREE.Group();
+        scene.add(wireGroup);
 
-        // ===================== PEBBLES =====================
-        const pebGrp = new THREE.Group();
-        const pebGeos = [
-            new THREE.IcosahedronGeometry(0.022, 1),
-            new THREE.IcosahedronGeometry(0.018, 0),
-            new THREE.TetrahedronGeometry(0.025, 0),
-            new THREE.SphereGeometry(0.02, 4, 3),
-            new THREE.DodecahedronGeometry(0.02, 0),
-        ];
-        const pebMats = [
-            new THREE.MeshStandardMaterial({ color: '#8a7a60', roughness: 0.6, metalness: 0.06 }),
-            new THREE.MeshStandardMaterial({ color: '#7a6a50', roughness: 0.7, metalness: 0.03 }),
-            new THREE.MeshStandardMaterial({ color: '#9b8b70', roughness: 0.55, metalness: 0.1 }),
-            new THREE.MeshStandardMaterial({ color: '#6a5a40', roughness: 0.75, metalness: 0.01 }),
-            new THREE.MeshStandardMaterial({ color: '#958065', roughness: 0.65, metalness: 0.04 }),
-        ];
+        // Main wireframe icosahedron
+        const icoGeo = new THREE.IcosahedronGeometry(R, 5);
+        const wireGeo = new THREE.WireframeGeometry(icoGeo);
+        const wireMat = new THREE.MeshBasicMaterial({
+            color: '#00cc88',
+            transparent: true,
+            opacity: 0.55,
+            linewidth: 1,
+        });
+        const wireframe = new THREE.Mesh(wireGeo, wireMat);
+        wireGroup.add(wireframe);
 
-        for (let i = 0; i < 400; i++) {
-            const vi = Math.floor(Math.random() * V);
-            const pp = surfP[vi].clone();
-            const nn = surfN[vi].clone();
-            const s = 0.3 + Math.random() * 2.5;
-            pp.add(nn.multiplyScalar(0.015 * s));
+        // Second wireframe with slightly different color for depth
+        const wireGeo2 = new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(R * 1.005, 5));
+        const wireMat2 = new THREE.MeshBasicMaterial({
+            color: '#0066aa',
+            transparent: true,
+            opacity: 0.2,
+        });
+        wireGroup.add(new THREE.Mesh(wireGeo2, wireMat2));
 
-            const gi = Math.floor(Math.random() * pebGeos.length);
-            const peb = new THREE.Mesh(pebGeos[gi], pebMats[gi]);
-            peb.position.copy(pp);
-            peb.scale.setScalar(s);
-            peb.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-            peb.castShadow = true;
-            pebGrp.add(peb);
+        // Orbital rings
+        function createOrbitalRing(radius, tubeRadius, rotation, color, opacity) {
+            const torusGeo = new THREE.TorusGeometry(radius, tubeRadius, 16, 100);
+            const torusMat = new THREE.MeshStandardMaterial({
+                color,
+                roughness: 0.3,
+                metalness: 0.9,
+                emissive: color,
+                emissiveIntensity: 0.6,
+                transparent: true,
+                opacity,
+            });
+            const torus = new THREE.Mesh(torusGeo, torusMat);
+            torus.rotation.set(rotation.x, rotation.y, rotation.z);
+            torus.castShadow = true;
+            return torus;
         }
-        sphere.add(pebGrp);
 
-        // ===================== GRASS BLADE TEXTURE =====================
-        function createBladeTexture() {
+        const ringR = R * 1.06;
+        wireGroup.add(createOrbitalRing(ringR, 0.015, { x: Math.PI / 2, y: 0, z: 0 }, '#00ddbb', 0.7));
+        wireGroup.add(createOrbitalRing(ringR, 0.013, { x: 1.1, y: 0.5, z: 0 }, '#00ccaa', 0.55));
+        wireGroup.add(createOrbitalRing(ringR, 0.013, { x: -1.1, y: -0.3, z: 0.6 }, '#0088cc', 0.5));
+
+        // Glowing vertex nodes
+        const nodeGroup = new THREE.Group();
+        wireGroup.add(nodeGroup);
+        const nodeGeo = new THREE.SphereGeometry(0.025, 8, 8);
+        const nodeMat = new THREE.MeshBasicMaterial({ color: '#00ffcc' });
+
+        // Sample some icosahedron vertices for nodes
+        const icoPos = icoGeo.attributes.position;
+        const addedNodes = new Set();
+        const nodeCount = Math.min(60, icoPos.count);
+        for (let i = 0; i < nodeCount; i++) {
+            const vi = Math.floor(Math.random() * icoPos.count);
+            const key = `${icoPos.getX(vi).toFixed(3)},${icoPos.getY(vi).toFixed(3)},${icoPos.getZ(vi).toFixed(3)}`;
+            if (addedNodes.has(key)) continue;
+            addedNodes.add(key);
+            const node = new THREE.Mesh(nodeGeo, nodeMat);
+            node.position.set(icoPos.getX(vi), icoPos.getY(vi), icoPos.getZ(vi));
+            nodeGroup.add(node);
+        }
+
+        // ===================== TECH PARTICLES =====================
+        const techParticles = [];
+        const techGroup = new THREE.Group();
+        scene.add(techGroup);
+
+        for (let i = 0; i < 120; i++) {
+            const size = 0.008 + Math.random() * 0.025;
+            const mat = new THREE.MeshBasicMaterial({
+                color: Math.random() < 0.6 ? '#00ffcc' : '#0088dd',
+                transparent: true,
+                opacity: 0.3 + Math.random() * 0.6,
+            });
+            const p = new THREE.Mesh(new THREE.SphereGeometry(size, 4, 4), mat);
+            const ang = Math.random() * Math.PI * 2;
+            const phi = (Math.random() - 0.5) * Math.PI;
+            const rad = R + 0.3 + Math.random() * 2.5;
+            p.position.set(
+                Math.cos(ang) * Math.cos(phi) * rad,
+                Math.sin(phi) * rad,
+                Math.sin(ang) * Math.cos(phi) * rad
+            );
+            p.userData = {
+                base: p.position.clone(),
+                spd: 0.1 + Math.random() * 0.5,
+                amp: 0.1 + Math.random() * 0.4,
+                ph: Math.random() * Math.PI * 2,
+                orb: (Math.random() - 0.5) * 0.3,
+            };
+            techGroup.add(p);
+            techParticles.push(p);
+        }
+
+        // ===================== GRASS SYSTEM =====================
+        function createBladeTex() {
             const W = 64, H = 256;
             const c = document.createElement('canvas');
             c.width = W; c.height = H;
             const ctx = c.getContext('2d');
-
             const img = ctx.createImageData(W, H);
             for (let y = 0; y < H; y++) {
                 const t = y / H;
                 for (let x = 0; x < W; x++) {
                     const xu = x / W;
-                    const edgeFade = 1 - Math.abs(xu - 0.5) * 2;
-                    const edgeAlpha = Math.pow(edgeFade, 1.8);
-
-                    // Color gradient: darker green at base, lighter at tip
-                    const r = 18 + t * 55 + (Math.random() - 0.5) * 10;
-                    const g = 72 + t * 95 + (Math.random() - 0.5) * 18;
-                    const b = 16 + t * 32 + (Math.random() - 0.5) * 8;
-
-                    // Alpha: solid at base, fading at tip + edge
-                    const tipAlpha = 1 - Math.pow(t, 1.6) * 0.75;
-                    const alpha = tipAlpha * edgeAlpha;
-
+                    const ef = 1 - Math.abs(xu - 0.5) * 2;
+                    const ea = Math.pow(ef, 1.8);
+                    const ta = 1 - Math.pow(t, 1.5) * 0.78;
+                    const a = ta * ea;
+                    const r = 16 + t * 50 + (Math.random() - 0.5) * 10;
+                    const g = 75 + t * 90 + (Math.random() - 0.5) * 16;
+                    const b = 14 + t * 28 + (Math.random() - 0.5) * 7;
                     const idx = (y * W + x) * 4;
-                    img.data[idx] = Math.min(255, Math.max(0, r));
-                    img.data[idx + 1] = Math.min(255, Math.max(0, g));
-                    img.data[idx + 2] = Math.min(255, Math.max(0, b));
-                    img.data[idx + 3] = Math.floor(Math.min(255, Math.max(0, alpha * 255)));
+                    img.data[idx] = Math.min(255, r);
+                    img.data[idx + 1] = Math.min(255, g);
+                    img.data[idx + 2] = Math.min(255, b);
+                    img.data[idx + 3] = Math.floor(Math.min(255, a * 255));
                 }
             }
             ctx.putImageData(img, 0, 0);
 
-            // Thin center vein
-            ctx.strokeStyle = 'rgba(100,180,60,0.15)';
+            // Center vein
+            ctx.strokeStyle = 'rgba(100,190,70,0.12)';
             ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(W / 2 + (Math.random() - 0.5) * 2, 0);
-            ctx.quadraticCurveTo(W / 2 + (Math.random() - 0.5) * 3, H * 0.5, W / 2 + (Math.random() - 0.5) * 3, H);
+            ctx.moveTo(W / 2 - 1 + Math.random() * 2, 0);
+            ctx.quadraticCurveTo(W / 2 + Math.random() * 3, H * 0.5, W / 2 - 1 + Math.random() * 2, H);
             ctx.stroke();
 
             const tex = new THREE.CanvasTexture(c);
@@ -420,7 +412,7 @@
             return tex;
         }
 
-        function createAlphaTexture() {
+        function createAlphaTex() {
             const W = 64, H = 256;
             const c = document.createElement('canvas');
             c.width = W; c.height = H;
@@ -432,8 +424,8 @@
                     const xu = x / W;
                     const ef = 1 - Math.abs(xu - 0.5) * 2;
                     const ea = Math.pow(ef, 1.8);
-                    const ta = 1 - Math.pow(t, 1.6) * 0.75;
-                    const a = Math.floor(Math.min(255, Math.max(0, ta * ea * 255)));
+                    const ta = 1 - Math.pow(t, 1.5) * 0.78;
+                    const a = Math.floor(Math.min(255, ta * ea * 255));
                     const idx = (y * W + x) * 4;
                     img.data[idx] = img.data[idx + 1] = img.data[idx + 2] = 255;
                     img.data[idx + 3] = a;
@@ -449,14 +441,12 @@
             return tex;
         }
 
-        const bladeTex = createBladeTexture();
-        const alphaTex = createAlphaTexture();
+        const bladeTex = createBladeTex();
+        const alphaTex = createAlphaTex();
 
-        // ===================== CURVED BLADE GEOMETRY (WITH UVs) =====================
         function createCurvedBladeGeo(bend, segs) {
-            const bh = 0.028, th = 0.0025, H = 1.0;
+            const bh = 0.026, th = 0.0022, H = 1.0;
             const posA = [], uvA = [];
-
             for (let s = 0; s < segs; s++) {
                 const t0 = s / segs, t1 = (s + 1) / segs;
                 const y0 = t0 * H, y1 = t1 * H;
@@ -464,20 +454,15 @@
                 const x1 = bend * Math.sin(t1 * Math.PI / 2);
                 const w0 = bh * (1 - t0) + th * t0;
                 const w1 = bh * (1 - t1) + th * t1;
-
-                // Front (2 tri)
                 posA.push(x0 - w0, y0, 0, x0 + w0, y0, 0, x1 - w1, y1, 0);
                 posA.push(x0 + w0, y0, 0, x1 + w1, y1, 0, x1 - w1, y1, 0);
                 uvA.push(0, t0, 1, t0, 0, t1);
                 uvA.push(1, t0, 1, t1, 0, t1);
-
-                // Back (2 tri)
                 posA.push(x0 + w0, y0, 0, x0 - w0, y0, 0, x1 + w1, y1, 0);
                 posA.push(x0 - w0, y0, 0, x1 - w1, y1, 0, x1 + w1, y1, 0);
                 uvA.push(0, t0, 1, t0, 0, t1);
                 uvA.push(1, t0, 1, t1, 0, t1);
             }
-
             const g = new THREE.BufferGeometry();
             g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(posA), 3));
             g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(uvA), 2));
@@ -485,43 +470,19 @@
             return g;
         }
 
-        // ===================== GRASS SYSTEM =====================
-        const BENDS = [-0.22, -0.14, -0.07, 0.0, 0.07, 0.14, 0.22];
-        const PER_MESH = 3500;
-        const TOTAL = BENDS.length * PER_MESH; // 24500
+        const BENDS = [-0.24, -0.15, -0.07, 0.0, 0.07, 0.15, 0.24];
+        const PER_MESH = 3200;
+        const TOTAL = BENDS.length * PER_MESH; // 22400
         const SEGS = 7;
 
         const meshes = [], allData = [], dummies = [];
         const grassGrp = new THREE.Group();
-        sphere.add(grassGrp);
+        core.add(grassGrp);
 
         const up = new THREE.Vector3(0, 1, 0);
         const axis = new THREE.Vector3();
         const q1 = new THREE.Quaternion();
         const q2 = new THREE.Quaternion();
-
-        // Pre-compute "grass favorability" map for vertices
-        // Grass prefers crevices (negative displacement) and upper hemisphere
-        const grassFavor = new Float32Array(V);
-        for (let i = 0; i < V; i++) {
-            const d = displacement[i];
-            const y = surfP[i].y / R;
-            // Negative displacement = crevice = good for grass
-            // Higher y = more sun = good for grass
-            const creviceScore = Math.max(0, -d / 0.2); // 0 to ~1
-            const sunScore = Math.max(0, (y + 1) / 2); // 0 to 1
-            grassFavor[i] = creviceScore * 0.7 + sunScore * 0.3;
-        }
-
-        // Weighted random vertex selection
-        function pickGrassVertex() {
-            // Rejection sampling with favorability
-            for (let attempt = 0; attempt < 20; attempt++) {
-                const vi = Math.floor(Math.random() * V);
-                if (Math.random() < grassFavor[vi] * 0.9 + 0.1) return vi;
-            }
-            return Math.floor(Math.random() * V);
-        }
 
         for (let m = 0; m < BENDS.length; m++) {
             const bladeGeo = createCurvedBladeGeo(BENDS[m], SEGS);
@@ -529,11 +490,10 @@
                 map: bladeTex,
                 alphaMap: alphaTex,
                 alphaTest: 0.35,
-                roughness: 0.55,
+                roughness: 0.5,
                 metalness: 0.0,
                 side: THREE.DoubleSide,
                 color: new THREE.Color('#ffffff'),
-                transparent: false,
                 depthWrite: true,
             });
 
@@ -545,25 +505,36 @@
             const dummy = new THREE.Object3D();
 
             for (let i = 0; i < PER_MESH; i++) {
-                const vi = pickGrassVertex();
-                const sp = surfP[vi];
-                const sn = surfN[vi];
+                // Bias toward upper hemisphere, slight randomness
+                let vi;
+                const rnd = Math.random();
+                if (rnd < 0.6) {
+                    vi = Math.floor(Math.random() * coreV);
+                    while (surfP[vi].y < -0.2 && Math.random() < 0.6) vi = Math.floor(Math.random() * coreV);
+                } else if (rnd < 0.88) {
+                    vi = Math.floor(Math.random() * coreV);
+                    while (Math.abs(surfP[vi].y) > 1.0 && Math.random() < 0.5) vi = Math.floor(Math.random() * coreV);
+                } else {
+                    vi = Math.floor(Math.random() * coreV);
+                }
 
-                // Small tangent-plane jitter for tufting effect
-                const jitterR = 0.015 + Math.random() * 0.06;
-                const jitterAngle = Math.random() * Math.PI * 2;
+                const sp = surfP[vi].clone();
+                const sn = surfN[vi].clone();
+
+                // Jitter along tangent for natural clustering
+                const jR = 0.01 + Math.random() * 0.05;
+                const jA = Math.random() * Math.PI * 2;
                 const tx = new THREE.Vector3(1, 0, 0).sub(sn.clone().multiplyScalar(sn.x)).normalize();
                 const ty = new THREE.Vector3().crossVectors(sn, tx).normalize();
                 const pos = sp.clone()
-                    .add(tx.clone().multiplyScalar(Math.cos(jitterAngle) * jitterR))
-                    .add(ty.clone().multiplyScalar(Math.sin(jitterAngle) * jitterR));
-                // Re-project to sphere surface
-                pos.normalize().multiplyScalar(R + displacement[vi]);
+                    .add(tx.clone().multiplyScalar(Math.cos(jA) * jR))
+                    .add(ty.clone().multiplyScalar(Math.sin(jA) * jR))
+                    .normalize().multiplyScalar(coreR);
 
-                const bladeH = 0.12 + Math.random() * 0.55;
+                const bladeH = 0.15 + Math.random() * 0.55;
                 const threshold = Math.random() * 0.78;
                 const growthSpd = 0.25 + Math.random() * 0.7;
-                const tilt = (Math.random() - 0.5) * 0.6;
+                const tilt = (Math.random() - 0.5) * 0.55;
                 const tiltDir = Math.random() * Math.PI * 2;
 
                 q1.setFromUnitVectors(up, sn);
@@ -581,13 +552,9 @@
             }
             mesh.instanceMatrix.needsUpdate = true;
 
-            // Color variation
             const gc = new THREE.Color();
             for (let i = 0; i < PER_MESH; i++) {
-                const hue = 0.20 + Math.random() * 0.14;
-                const sat = 0.45 + Math.random() * 0.5;
-                const lit = 0.18 + Math.random() * 0.35;
-                gc.setHSL(hue, sat, lit);
+                gc.setHSL(0.20 + Math.random() * 0.14, 0.45 + Math.random() * 0.5, 0.18 + Math.random() * 0.35);
                 mesh.setColorAt(i, gc);
             }
             mesh.instanceColor.needsUpdate = true;
@@ -596,33 +563,6 @@
             allData.push(data);
             dummies.push(dummy);
             grassGrp.add(mesh);
-        }
-
-        // ===================== FLOATING PARTICLES =====================
-        const particlesGrp = new THREE.Group();
-        scene.add(particlesGrp);
-        const particles = [];
-
-        for (let i = 0; i < 200; i++) {
-            const mat = new THREE.MeshBasicMaterial({
-                color: new THREE.Color().setHSL(0.12, 0.2, 0.3 + Math.random() * 0.45),
-                transparent: true,
-                opacity: 0.15 + Math.random() * 0.4,
-            });
-            const p = new THREE.Mesh(new THREE.SphereGeometry(0.01, 4, 4), mat);
-            const ang = Math.random() * Math.PI * 2;
-            const phi = (Math.random() - 0.5) * Math.PI;
-            const rad = 2.0 + Math.random() * 2.0;
-            p.position.set(Math.cos(ang) * Math.cos(phi) * rad, Math.sin(phi) * rad, Math.sin(ang) * Math.cos(phi) * rad);
-            p.userData = {
-                base: p.position.clone(),
-                spd: 0.12 + Math.random() * 0.5,
-                amp: 0.06 + Math.random() * 0.3,
-                ph: Math.random() * Math.PI * 2,
-                orb: (Math.random() - 0.5) * 0.22,
-            };
-            particlesGrp.add(p);
-            particles.push(p);
         }
 
         // ===================== STATE =====================
@@ -673,16 +613,26 @@
             const dt = Math.min(clk.getDelta(), 0.1);
             const t = performance.now() * 0.001;
 
+            // Scroll progress — fully reversible
             const tp = scrollProg();
-            curProg += (tp - curProg) * 3.0 * dt;
-            const tr = curProg * Math.PI * 3.2;
+            curProg += (tp - curProg) * 3.5 * dt;
+
+            // Rotation
+            const tr = curProg * Math.PI * 2.8;
             curRot += (tr - curRot) * 2.5 * dt;
-            sphere.rotation.y = curRot;
-            sphere.rotation.x = Math.sin(curRot * 0.28) * 0.13;
+
+            // Rotate both core and wireframe together
+            core.rotation.y = curRot;
+            core.rotation.x = Math.sin(curRot * 0.25) * 0.1;
+            wireGroup.rotation.y = curRot;
+            wireGroup.rotation.x = Math.sin(curRot * 0.25) * 0.1;
+            techGroup.rotation.y = curRot * 0.6;
+            techGroup.rotation.x = Math.sin(curRot * 0.2) * 0.06;
 
             updateGrass(curProg);
 
-            for (const p of particles) {
+            // Tech particles
+            for (const p of techParticles) {
                 const u = p.userData;
                 p.position.set(
                     u.base.x + Math.sin(t * u.spd + u.ph) * u.amp,
@@ -695,38 +645,21 @@
                 p.position.z = Math.sin(a) * r;
             }
 
+            // Pulsing glow on nodes
+            const pulse = 0.7 + Math.sin(t * 2.5) * 0.3;
+            nodeMat.color.setRGB(0, 0.8 + pulse * 0.2, 0.6 + pulse * 0.4);
+            wireMat.opacity = 0.4 + Math.sin(t * 1.5) * 0.12;
+
             scrollHint.style.opacity = curProg > 0.05 ? Math.max(0, 1 - curProg * 10) : 1;
 
             mx += (tmx - mx) * 2.5 * dt;
             my += (tmy - my) * 2.5 * dt;
             camera.position.x = camBase.x + mx * 0.35;
             camera.position.y = camBase.y + my * 0.25;
-            camera.lookAt(0, -0.15, 0);
+            camera.lookAt(0, -0.1, 0);
 
             renderer.render(scene, camera);
         }
-
-        // ===================== BUTTON SCRAMBLE =====================
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!@#$%&*?<>';
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            const orig = btn.dataset.text;
-            let iv = null, on = false;
-            btn.addEventListener('mouseenter', () => {
-                on = true;
-                if (iv) clearInterval(iv);
-                let iter = 0;
-                iv = setInterval(() => {
-                    if (!on) { clearInterval(iv); btn.textContent = orig; return; }
-                    const rev = Math.floor((iter / 10) * orig.length);
-                    btn.textContent = orig.split('').map((c, i) =>
-                        i < rev ? orig[i] : c === ' ' ? ' ' : chars[Math.floor(Math.random() * chars.length)]
-                    ).join('');
-                    if (++iter > 10) { clearInterval(iv); btn.textContent = orig; }
-                }, 45);
-            });
-            btn.addEventListener('mouseleave', () => { on = false; if (iv) { clearInterval(iv); iv = null; }
-                btn.textContent = orig; });
-        });
 
         // ===================== RESIZE =====================
         window.addEventListener('resize', () => {
