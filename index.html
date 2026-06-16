@@ -174,120 +174,101 @@
         }
 
         /* ====== Project Section ====== */
-        #project { min-height: 100vh; padding: 40px 0; }
-        .project-layout {
-            display: flex; align-items: center; gap: 56px;
-            max-width: 1160px; width: 90vw; margin: 0 auto;
+        #project { min-height: 100vh; padding: 50px 0 30px; }
+        .project-wrap {
+            max-width: 1300px; width: 92vw; margin: 0 auto;
             position: relative; z-index: 1;
         }
-        .project-info {
-            flex: 0 0 300px; min-width: 260px;
+        .project-text {
+            text-align: center; margin-bottom: 36px;
         }
-        .project-info .section-label {
+        .project-text .section-label {
             display: block; font-size: 0.78rem; color: #00cc88;
-            letter-spacing: 0.18em; margin-bottom: 14px;
-            opacity: 0; transform: translateX(-24px);
+            letter-spacing: 0.18em; margin-bottom: 12px;
+            opacity: 0; transform: translateY(18px);
             transition: opacity 0.7s ease 0.05s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.05s;
         }
-        .project-info h2 {
-            font-size: 2.4rem; font-weight: 700; color: #d0f0e0;
-            margin-bottom: 20px; text-shadow: 0 0 30px rgba(0,220,160,0.12);
-            opacity: 0; transform: translateX(-28px);
+        .project-text h2 {
+            font-size: 2.6rem; font-weight: 700; color: #d0f0e0;
+            margin-bottom: 18px; text-shadow: 0 0 30px rgba(0,220,160,0.12);
+            opacity: 0; transform: translateY(22px);
             transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.15s;
         }
-        .project-info p {
-            font-size: 0.98rem; line-height: 1.9; color: #90b8a8;
-            margin-bottom: 12px;
-            opacity: 0; transform: translateX(-20px);
+        .project-text p {
+            font-size: 0.98rem; line-height: 1.8; color: #90b8a8;
+            max-width: 600px; margin: 0 auto 10px;
+            opacity: 0; transform: translateY(18px);
             transition: opacity 0.7s ease 0.28s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.28s;
         }
-        .project-info .tag-row {
-            opacity: 0; transform: translateX(-16px);
+        .project-text .tag-row {
+            justify-content: center;
+            opacity: 0; transform: translateY(14px);
             transition: opacity 0.7s ease 0.4s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s;
         }
-        .project-info.visible .section-label,
-        .project-info.visible h2,
-        .project-info.visible p,
-        .project-info.visible .tag-row { opacity: 1; transform: translateX(0); }
+        .project-text.visible .section-label,
+        .project-text.visible h2,
+        .project-text.visible p,
+        .project-text.visible .tag-row { opacity: 1; transform: translateY(0); }
 
-        .counter {
-            display: inline-block; margin-top: 20px; font-size: 0.85rem;
-            color: #509070; letter-spacing: 0.06em;
-            opacity: 0; transition: opacity 0.7s ease 0.55s;
+        /* Image strip */
+        .img-strip-wrap {
+            position: relative; overflow: hidden;
+            cursor: grab; -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
         }
-        .project-info.visible .counter { opacity: 1; }
-
-        /* Carousel */
-        .project-carousel {
-            flex: 1; position: relative; min-width: 0;
+        .img-strip-wrap:active { cursor: grabbing; }
+        .img-strip {
+            display: flex; gap: 28px; padding: 10px 4vw;
+            will-change: transform; transition: transform 0.6s cubic-bezier(0.25,1,0.5,1);
         }
-        .carousel-viewport {
-            overflow: hidden; border-radius: 14px;
-            border: 1px solid rgba(0,200,140,0.12);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
-            position: relative; cursor: grab;
-            opacity: 0; transform: translateX(40px);
-            transition: opacity 0.8s ease 0.2s, transform 0.8s cubic-bezier(0.22,1,0.36,1) 0.2s;
+        .img-strip.dragging { transition: none; }
+        .img-card {
+            flex-shrink: 0; width: 380px;
+            opacity: 0; transform: translateY(60px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22,1,0.36,1);
         }
-        .carousel-viewport.visible { opacity: 1; transform: translateX(0); }
-        .carousel-viewport:active { cursor: grabbing; }
-        .carousel-track {
-            display: flex; will-change: transform;
-            transition: transform 0.55s cubic-bezier(0.25,1,0.5,1);
-        }
-        .carousel-track.dragging { transition: none; }
-        .carousel-slide {
-            flex: 0 0 100%; position: relative;
-            /* parallax via JS */
-        }
-        .carousel-slide img {
-            width: 100%; height: auto; max-height: 62vh;
-            object-fit: cover; display: block;
-            border-radius: 2px;
+        .img-card.visible { opacity: 1; transform: translateY(0); }
+        .img-card:nth-child(even) { transform: translateY(20px); opacity: 0; }
+        .img-card:nth-child(even).visible { transform: translateY(-28px); opacity: 1; }
+        .img-card img {
+            width: 100%; height: 260px; object-fit: cover; display: block;
+            border-radius: 10px; border: 1px solid rgba(0,200,140,0.1);
+            box-shadow: 0 6px 30px rgba(0,0,0,0.35);
             user-select: none; -webkit-user-drag: none;
+            transition: border-color 0.4s, box-shadow 0.4s;
         }
-        /* Slide parallax layers */
-        .carousel-slide .parallax-inner {
-            transform: translateY(0); will-change: transform;
-            transition: transform 0.15s ease-out;
+        .img-card:hover img {
+            border-color: rgba(0,220,160,0.35);
+            box-shadow: 0 10px 40px rgba(0,200,140,0.1);
         }
+        .img-card .img-label {
+            display: block; text-align: center; margin-top: 10px;
+            font-size: 0.82rem; color: #609080; letter-spacing: 0.06em;
+            transition: color 0.35s;
+        }
+        .img-card:hover .img-label { color: #00ccaa; }
 
-        .carousel-arrow {
+        /* Strip nav arrows */
+        .strip-arrow {
             position: absolute; top: 50%; transform: translateY(-50%);
-            width: 44px; height: 44px; border-radius: 50%;
+            width: 40px; height: 40px; border-radius: 50%;
             background: rgba(8,20,32,0.7); border: 1px solid rgba(0,200,140,0.2);
-            color: #80c8a8; font-size: 1.1rem; cursor: pointer; z-index: 2;
+            color: #80c8a8; font-size: 1rem; cursor: pointer; z-index: 2;
             display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s; backdrop-filter: blur(8px);
-            opacity: 0.55;
+            transition: all 0.3s; backdrop-filter: blur(8px); opacity: 0.45;
         }
-        .carousel-arrow:hover { opacity: 1; border-color: rgba(0,220,160,0.5); color: #00eebb; box-shadow: 0 0 20px rgba(0,200,140,0.15); }
-        .carousel-arrow.prev { left: 12px; }
-        .carousel-arrow.next { right: 12px; margin-right: 10px; }
+        .strip-arrow:hover { opacity: 1; border-color: rgba(0,220,160,0.5); color: #00eebb; box-shadow: 0 0 20px rgba(0,200,140,0.15); }
+        .strip-arrow.prev { left: 10px; }
+        .strip-arrow.next { right: 10px; }
 
-        .carousel-dots {
-            display: flex; justify-content: center; gap: 8px; margin-top: 16px;
+        .strip-indicator {
+            text-align: center; margin-top: 18px; font-size: 0.82rem;
+            color: #508068; letter-spacing: 0.08em;
         }
-        .carousel-dots .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: rgba(0,200,140,0.2); border: none; cursor: pointer;
-            transition: all 0.35s; padding: 0;
-        }
-        .carousel-dots .dot.active { background: #00cc88; box-shadow: 0 0 8px rgba(0,200,140,0.4); width: 24px; border-radius: 4px; }
 
-        @media (max-width: 860px) {
-            .project-layout { flex-direction: column; gap: 32px; }
-            .project-info { flex: auto; min-width: auto; text-align: center; }
-            .project-info.visible .section-label,
-            .project-info.visible h2,
-            .project-info.visible p,
-            .project-info.visible .tag-row { transform: translateY(0); }
-            .project-info .section-label,
-            .project-info h2,
-            .project-info p,
-            .project-info .tag-row { transform: translateY(20px) !important; }
-            .carousel-viewport { transform: translateY(30px); }
-            .carousel-viewport.visible { transform: translateY(0); }
+        @media (max-width: 768px) {
+            .img-card { width: 280px; }
+            .img-card img { height: 190px; }
         }
     </style>
 </head>
@@ -331,36 +312,32 @@
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
-        <div class="project-layout">
-            <div class="project-info" id="projectInfo">
+        <div class="project-wrap">
+            <div class="project-text" id="projectText">
                 <span class="section-label">Project 01</span>
                 <h2>交互式3D地球</h2>
                 <p>基于 Three.js 构建的实时 3D 交互体验。镂空线框结构配合程序化生成的草地覆盖动画，通过滚动驱动自然生长效果。</p>
-                <p>结合顶点噪声位移、实例化渲染与多层后处理，在浏览器中实现了接近真实的土壤与植被质感。</p>
                 <div class="tag-row">
                     <span class="tag">Three.js</span>
                     <span class="tag">WebGL</span>
                     <span class="tag">程序化生成</span>
                     <span class="tag">交互设计</span>
                 </div>
-                <div class="counter" id="carouselCounter">1 / 7</div>
             </div>
-            <div class="project-carousel" id="projectCarousel">
-                <div class="carousel-viewport" id="carouselViewport">
-                    <div class="carousel-track" id="carouselTrack">
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/1.png" alt="项目图1"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/2.png" alt="项目图2"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/3.png" alt="项目图3"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/4.png" alt="项目图4"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/5.png" alt="项目图5"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/6.png" alt="项目图6"></div></div>
-                        <div class="carousel-slide"><div class="parallax-inner"><img src="images/1/7.png" alt="项目图7"></div></div>
-                    </div>
+            <div class="img-strip-wrap" id="stripWrap">
+                <div class="img-strip" id="imgStrip">
+                    <div class="img-card"><span class="img-label">线框结构</span><img src="images/1/1.png" alt="线框结构"></div>
+                    <div class="img-card"><span class="img-label">泥土覆盖</span><img src="images/1/2.png" alt="泥土覆盖"></div>
+                    <div class="img-card"><span class="img-label">草地生长</span><img src="images/1/3.png" alt="草地生长"></div>
+                    <div class="img-card"><span class="img-label">完整草皮</span><img src="images/1/4.png" alt="完整草皮"></div>
+                    <div class="img-card"><span class="img-label">细节展示</span><img src="images/1/5.png" alt="细节展示"></div>
+                    <div class="img-card"><span class="img-label">整体效果</span><img src="images/1/6.png" alt="整体效果"></div>
+                    <div class="img-card"><span class="img-label">交互演示</span><img src="images/1/7.png" alt="交互演示"></div>
                 </div>
-                <div class="carousel-arrow prev" id="carouselPrev">←</div>
-                <div class="carousel-arrow next" id="carouselNext">→</div>
-                <div class="carousel-dots" id="carouselDots"></div>
+                <div class="strip-arrow prev" id="stripPrev">←</div>
+                <div class="strip-arrow next" id="stripNext">→</div>
             </div>
+            <div class="strip-indicator" id="stripIndicator">← 拖拽或滑动查看全部 7 张图片 →</div>
         </div>
     </section>
 
@@ -874,125 +851,91 @@
         }, { threshold: 0.25 });
         document.querySelectorAll('.page-content,.project-info,.carousel-viewport').forEach(el => sectionObserver.observe(el));
 
-        // ===================== IMAGE CAROUSEL =====================
-        (function carousel() {
-            const track = document.getElementById('carouselTrack');
-            const viewport = document.getElementById('carouselViewport');
-            const prevBtn = document.getElementById('carouselPrev');
-            const nextBtn = document.getElementById('carouselNext');
-            const dotsContainer = document.getElementById('carouselDots');
-            const counter = document.getElementById('carouselCounter');
-            if (!track) return;
+        // ===================== IMAGE STRIP =====================
+        (function imgStrip() {
+            const strip = document.getElementById('imgStrip');
+            const wrap = document.getElementById('stripWrap');
+            const prevBtn = document.getElementById('stripPrev');
+            const nextBtn = document.getElementById('stripNext');
+            const indicator = document.getElementById('stripIndicator');
+            if (!strip) return;
 
-            const slides = track.querySelectorAll('.carousel-slide');
-            const total = slides.length;
-            let current = 0;
-            let isDragging = false, startX = 0, dragOffset = 0, animFrame;
+            const cards = strip.querySelectorAll('.img-card');
+            const cardW = 380 + 28; // card width + gap
+            let offset = 0, maxOffset = 0;
+            let isDragging = false, startX = 0, baseOffset = 0, dragOffset = 0;
 
-            // Build dots
-            for (let i = 0; i < total; i++) {
-                const dot = document.createElement('button');
-                dot.className = 'dot' + (i === 0 ? ' active' : '');
-                dot.addEventListener('click', () => goTo(i));
-                dotsContainer.appendChild(dot);
-            }
-            const dots = dotsContainer.querySelectorAll('.dot');
-
-            function updateViewport() {
-                const w = viewport.clientWidth;
-                return w;
+            function updateMax() {
+                const wrapW = wrap.clientWidth;
+                const totalW = cards.length * cardW - 28;
+                maxOffset = Math.max(0, totalW - wrapW + 120);
             }
 
-            function goTo(idx, instant) {
-                if (idx < 0) idx = total - 1;
-                if (idx >= total) idx = 0;
-                current = idx;
-                const w = updateViewport();
-                track.style.transition = instant ? 'none' : 'transform 0.55s cubic-bezier(0.25,1,0.5,1)';
-                track.style.transform = `translateX(${-current * w}px)`;
-                dots.forEach((d, i) => d.classList.toggle('active', i === current));
-                if (counter) counter.textContent = `${current + 1} / ${total}`;
+            function setOffset(v, instant) {
+                updateMax();
+                offset = Math.max(0, Math.min(v, maxOffset));
+                strip.style.transition = instant ? 'none' : 'transform 0.6s cubic-bezier(0.25,1,0.5,1)';
+                strip.style.transform = `translateX(${-offset}px)`;
+                if (indicator) {
+                    const pct = maxOffset > 0 ? Math.round(offset / maxOffset * 100) : 0;
+                    if (maxOffset < 10) {
+                        indicator.textContent = '← 拖拽或滑动查看全部 7 张图片 →';
+                    } else if (offset < 5) {
+                        indicator.textContent = '→ 向右滑动查看更多';
+                    } else if (offset >= maxOffset - 5) {
+                        indicator.textContent = '← 向左滑动查看';
+                    } else {
+                        indicator.textContent = '← 滑动查看更多 →';
+                    }
+                }
             }
 
-            // Drag handling
-            function onDragStart(e) {
+            function onStart(e) {
                 isDragging = true;
-                track.classList.add('dragging');
-                track.style.transition = 'none';
+                strip.classList.add('dragging');
+                baseOffset = offset;
                 startX = e.touches ? e.touches[0].clientX : e.clientX;
                 dragOffset = 0;
             }
-
-            function onDragMove(e) {
+            function onMove(e) {
                 if (!isDragging) return;
                 const cx = e.touches ? e.touches[0].clientX : e.clientX;
-                dragOffset = cx - startX;
-                const w = updateViewport();
-                const baseOffset = -current * w;
-                track.style.transform = `translateX(${baseOffset + dragOffset}px)`;
+                dragOffset = startX - cx;
+                setOffset(baseOffset + dragOffset, true);
             }
-
-            function onDragEnd() {
+            function onEnd() {
                 if (!isDragging) return;
                 isDragging = false;
-                track.classList.remove('dragging');
-                const w = updateViewport();
-                const threshold = w * 0.2;
-                if (Math.abs(dragOffset) > threshold) {
-                    goTo(dragOffset > 0 ? current - 1 : current + 1);
-                } else {
-                    goTo(current);
-                }
-                dragOffset = 0;
+                strip.classList.remove('dragging');
+                setOffset(baseOffset + dragOffset);
             }
 
-            viewport.addEventListener('mousedown', onDragStart);
-            viewport.addEventListener('touchstart', onDragStart, { passive: true });
-            window.addEventListener('mousemove', onDragMove);
-            window.addEventListener('touchmove', onDragMove, { passive: true });
-            window.addEventListener('mouseup', onDragEnd);
-            window.addEventListener('touchend', onDragEnd);
+            wrap.addEventListener('mousedown', onStart);
+            wrap.addEventListener('touchstart', onStart, { passive: true });
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: true });
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
 
-            prevBtn.addEventListener('click', e => { e.stopPropagation(); goTo(current - 1); });
-            nextBtn.addEventListener('click', e => { e.stopPropagation(); goTo(current + 1); });
+            prevBtn.addEventListener('click', e => { e.stopPropagation(); setOffset(offset - 300); });
+            nextBtn.addEventListener('click', e => { e.stopPropagation(); setOffset(offset + 300); });
 
-            // Keyboard
-            window.addEventListener('keydown', e => {
-                const rect = viewport.getBoundingClientRect();
-                const inView = rect.top < window.innerHeight && rect.bottom > 0;
-                if (!inView) return;
-                if (e.key === 'ArrowLeft') goTo(current - 1);
-                if (e.key === 'ArrowRight') goTo(current + 1);
-            });
-
-            // Parallax on hover within viewport
-            viewport.addEventListener('mousemove', e => {
-                if (isDragging) return;
-                const rect = viewport.getBoundingClientRect();
-                const mx = (e.clientX - rect.left) / rect.width;
-                const my = (e.clientY - rect.top) / rect.height;
-                const activeSlide = slides[current];
-                if (activeSlide) {
-                    const inner = activeSlide.querySelector('.parallax-inner');
-                    if (inner) {
-                        const dx = (mx - 0.5) * 16;
-                        const dy = (my - 0.5) * 10;
-                        inner.style.transform = `translate(${dx}px,${dy}px)`;
+            // IntersectionObserver for card entrance (bottom-up fade)
+            const cardObserver = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
                     }
-                }
-            });
-            viewport.addEventListener('mouseleave', () => {
-                slides.forEach(s => {
-                    const inner = s.querySelector('.parallax-inner');
-                    if (inner) inner.style.transform = 'translate(0,0)';
                 });
-            });
+            }, { threshold: 0.2 });
+            cards.forEach(c => cardObserver.observe(c));
 
-            // Resize
-            window.addEventListener('resize', () => goTo(current, true));
+            // Also observe project text
+            const textEl = document.getElementById('projectText');
+            if (textEl) cardObserver.observe(textEl);
 
-            // Init
-            goTo(0);
+            window.addEventListener('resize', () => setOffset(offset, true));
+            setOffset(0, true);
         })();
 
         // ===================== ANIMATION =====================
