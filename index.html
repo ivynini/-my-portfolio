@@ -301,8 +301,6 @@
         }
         .puzzle-canvas {
             display: block; width: 100%; height: auto;
-            border-radius: 10px; border: 1px solid rgba(0,200,140,0.12);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
         }
         .puzzle-thumbs {
             display: flex; justify-content: center; gap: 14px; margin-top: 22px;
@@ -1423,19 +1421,6 @@
             }
 
             function drawStack() {
-                // Subtle backdrop so cards pop against dark page
-                const L0 = imgLayout(curIdx, true);
-                if (L0) {
-                    const pad = 60;
-                    ctx.save();
-                    const grad = ctx.createRadialGradient(L0.cw / 2, L0.ch / 2, L0.sw * 0.3, L0.cw / 2, L0.ch / 2, L0.sw * 1.2);
-                    grad.addColorStop(0, 'rgba(15, 25, 20, 0.55)');
-                    grad.addColorStop(1, 'rgba(5, 10, 16, 0)');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, L0.cw, L0.ch);
-                    ctx.restore();
-                }
-
                 // Back-to-front draw order
                 const drawOrder = [
                     (curIdx - 2 + IMG_COUNT) % IMG_COUNT,
