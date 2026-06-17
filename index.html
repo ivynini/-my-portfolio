@@ -159,7 +159,58 @@
         .page-content.visible .section-label,
         .page-content.visible h2,
         .page-content.visible p,
-        .page-content.visible .tag-row { opacity: 1; transform: translateY(0); }
+        .page-content.visible .tag-row,
+        .page-content.visible .about-line,
+        .page-content.visible .about-sub,
+        .page-content.visible .about-projects,
+        .page-content.visible .about-proj { opacity: 1; transform: translateY(0); }
+
+        /* ====== About text ====== */
+        .about-line {
+            font-size: 1.15rem; line-height: 2.3; color: #b0d8c8;
+            letter-spacing: 0.04em; margin-bottom: 6px;
+            opacity: 0; transform: translateY(28px);
+            transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22,1,0.36,1);
+        }
+        .about-quote {
+            color: #00eebb; font-weight: 700; font-size: 1.35rem;
+            letter-spacing: 0.06em;
+            text-shadow: 0 0 28px rgba(0, 238, 187, 0.55), 0 0 60px rgba(0, 200, 140, 0.25);
+            white-space: nowrap;
+        }
+        .about-sub {
+            margin-top: 22px;
+            font-size: 1rem; color: #80b8a0; letter-spacing: 0.04em;
+            opacity: 0; transform: translateY(20px);
+            transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1);
+        }
+        .about-projects {
+            display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px;
+        }
+        .about-proj {
+            padding: 10px 26px; border-radius: 24px;
+            font-size: 0.95rem; letter-spacing: 0.05em;
+            border: 1px solid rgba(0, 200, 140, 0.25);
+            color: #90d8b8;
+            background: rgba(0, 160, 100, 0.06);
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1),
+                        border-color 0.35s, background 0.35s, box-shadow 0.35s;
+        }
+        .about-proj:hover {
+            border-color: rgba(0, 220, 160, 0.55);
+            background: rgba(0, 180, 120, 0.12);
+            box-shadow: 0 0 22px rgba(0, 200, 140, 0.15);
+        }
+
+        /* Staggered delays */
+        .a-delay-1 { transition-delay: 0.10s; }
+        .a-delay-2 { transition-delay: 0.25s; }
+        .a-delay-3 { transition-delay: 0.40s; }
+        .a-delay-4 { transition-delay: 0.60s; }
+        .a-delay-5 { transition-delay: 0.75s; }
+        .a-delay-6 { transition-delay: 0.90s; }
+        .a-delay-7 { transition-delay: 1.05s; }
 
         /* Contact specific */
         #contact .page-content { text-align: center; }
@@ -385,17 +436,17 @@
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
-        <div class="page-content">
+        <div class="page-content" id="aboutContent">
             <span class="section-label">About</span>
-            <h2>关于我</h2>
-            <p>你好，我是 <strong style="color:#00eebb;">丁羽微</strong>，一名热爱交互设计与视觉表达的前端开发者。我相信好的设计不只是好看，更要让人感到「好用」——在细微之处传递温度。</p>
-            <p>专注于 3D Web、创意交互与生成式视觉，喜欢把代码变成可以触摸的体验。</p>
-            <div class="tag-row">
-                <span class="tag">Three.js</span>
-                <span class="tag">WebGL</span>
-                <span class="tag">UI/UX</span>
-                <span class="tag">创意编程</span>
-                <span class="tag">生成艺术</span>
+            <h2>关于</h2>
+            <p class="about-line a-delay-1">随着科技的发展，AI越来越强大，</p>
+            <p class="about-line a-delay-2">几乎可以完全替代我作图，但是，</p>
+            <p class="about-line a-delay-3">我想让<span class="about-quote">"科技中长出生命的嫩芽"</span>。</p>
+            <p class="about-sub a-delay-4">整体风格采用绿色，加上AI协助生成以下项目页面：</p>
+            <div class="about-projects a-delay-5">
+                <span class="about-proj a-delay-5">校园咖啡APP</span>
+                <span class="about-proj a-delay-6">星露谷游戏官网</span>
+                <span class="about-proj a-delay-7">自设抽卡游戏界面</span>
             </div>
         </div>
     </section>
