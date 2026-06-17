@@ -1826,16 +1826,13 @@
                         r1: 0.32 + pair * 0.30,
                     };
                 });
-                // Position labels between each image pair
+                // Position labels at the same vertical position as their matching image
                 labelMeta.length = 0;
                 labels.forEach(function(lbl, i) {
                     const pair = parseInt(lbl.dataset.pair);
-                    const pos = lbl.dataset.pos;
-                    const t0 = tops[pair * 2];
-                    const t1 = tops[pair * 2 + 1];
-                    const mid = (t0 + t1) / 2;
-                    const y = pos === 'top' ? (t0 + mid) / 2 : (mid + t1) / 2;
-                    lbl.style.top = (H * y) + 'px';
+                    var pos = lbl.dataset.pos;
+                    var imgIdx = pos === 'top' ? pair * 2 : pair * 2 + 1;
+                    lbl.style.top = (H * tops[imgIdx]) + 'px';
                     labelMeta[i] = {
                         el: lbl,
                         r0: 0.12 + pair * 0.30,
