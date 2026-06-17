@@ -1452,11 +1452,11 @@
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
 
-                    // Subtle dim on non-current cards
+                    // Subtle dim on non-current cards — blend with project2 background
                     if (!isCurrent) {
                         ctx.save();
-                        ctx.globalAlpha = stackDarks[i];
-                        ctx.fillStyle = '#050a10';
+                        ctx.globalAlpha = 0.25;
+                        ctx.fillStyle = '#d8e2ee';
                         ctx.fillRect(x, y, L.sw, L.sh);
                         ctx.restore();
                     }
@@ -1469,19 +1469,6 @@
                     ctx.shadowOffsetY = 4;
                     ctx.globalAlpha = isCurrent ? 1 : 0.60;
                     ctx.drawImage(L.img, x, y, L.sw, L.sh);
-                    ctx.restore();
-
-                    // Card border
-                    ctx.save();
-                    ctx.strokeStyle = isCurrent
-                        ? 'rgba(0, 238, 187, 0.6)'
-                        : 'rgba(0, 180, 130, 0.22)';
-                    ctx.lineWidth = isCurrent ? 2.5 : 1.2;
-                    if (isCurrent) {
-                        ctx.shadowColor = 'rgba(0, 220, 160, 0.5)';
-                        ctx.shadowBlur = 20;
-                    }
-                    ctx.strokeRect(x, y, L.sw, L.sh);
                     ctx.restore();
                 }
             }
