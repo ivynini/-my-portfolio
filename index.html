@@ -208,22 +208,25 @@
         .a-delay-6 { transition-delay: 0.90s; }
         .a-delay-7 { transition-delay: 1.05s; }
 
-        /* About */
-        #about { background: #8ab8a0; }
-        #about .section-label { color: #1a5a40; }
-        #about h2 { color: #0d3020; text-shadow: none; }
-        #about p { color: #1a3a2a; }
-        #about .about-line { color: #1a3a2a; }
-        #about .about-quote { color: #0d6a40; text-shadow: 0 0 18px rgba(0, 80, 40, 0.3); }
-        #about .about-sub { color: #2a5040; }
-        #about .about-proj {
-            color: #1a5a40; border-color: rgba(0, 80, 50, 0.3);
-            background: rgba(0, 60, 30, 0.06);
+        /* About — mesh ring extension from hero globe */
+        #about::after {
+            content: ''; position: absolute; pointer-events: none;
+            top: -60vh; left: 50%; transform: translateX(-50%);
+            width: 140vh; height: 140vh; border-radius: 50%;
+            border: 1px solid rgba(0, 200, 140, 0.10);
+            box-shadow:
+                0 0 0 20vh rgba(0, 200, 140, 0.015),
+                inset 0 0 0 12vh rgba(0, 200, 140, 0.012);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 70%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 70%, transparent 100%);
         }
-        #about .about-proj:hover {
-            border-color: rgba(0, 80, 50, 0.55);
-            background: rgba(0, 60, 30, 0.12);
-            box-shadow: 0 0 18px rgba(0, 60, 30, 0.15);
+        #about::before {
+            content: ''; position: absolute; pointer-events: none;
+            top: -40vh; left: 50%; transform: translateX(-50%);
+            width: 100vh; height: 100vh; border-radius: 50%;
+            border: 1px solid rgba(0, 220, 160, 0.08);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 65%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 65%, transparent 100%);
         }
 
         /* Contact specific */
@@ -598,20 +601,9 @@
 
         // ===================== SCENE =====================
         const BG = '#050a10';
-        const BG_LIGHT = '#8ab8a0';  // target lighter green at full hero scroll
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(BG);
         scene.fog = new THREE.Fog(BG, 10, 30);
-
-        function lerpHex(a, b, t) {
-            const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
-            const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
-            const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
-            const rr = Math.round(ar + (br - ar) * t);
-            const rg = Math.round(ag + (bg - ag) * t);
-            const rb = Math.round(ab + (bb - ab) * t);
-            return '#' + ((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1);
-        }
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 50);
         const camBase = { x: 0, y: 0, z: 7.0 };
@@ -1913,11 +1905,6 @@
 
             const tp = grassProg();
             curProg += (tp - curProg) * 3.5 * dt;
-
-            // Background lightens with hero scroll
-            const bgColor = lerpHex(BG, BG_LIGHT, curProg);
-            scene.background.set(bgColor);
-            scene.fog.color.set(bgColor);
 
             const tr = curProg * Math.PI * 2.5;
             const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25;
