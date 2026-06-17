@@ -359,7 +359,7 @@
 
         /* ====== Project 3 Gallery — Edge Image Reveal ====== */
         #project3-gallery {
-            min-height: 180vh; padding: 60px 0; overflow: hidden; position: relative;
+            min-height: 300vh; padding: 60px 0; overflow: hidden; position: relative;
             background: linear-gradient(to bottom,
                 var(--dark) 0%,
                 var(--dark) 100%);
@@ -1773,7 +1773,7 @@
 
             function positionImages() {
                 const H = section.offsetHeight;
-                const tops = [0.02, 0.17, 0.36, 0.51, 0.70, 0.85];
+                const tops = [0.02, 0.18, 0.38, 0.54, 0.72, 0.88];
                 imgs.forEach(function(img, i) {
                     img.style.top = (H * tops[i]) + 'px';
                     const pair = Math.floor(i / 2);
