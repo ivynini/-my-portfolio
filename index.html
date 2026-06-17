@@ -1177,8 +1177,9 @@
 
             // ---- Stack mode helpers ----
             const STACK_CANVAS_MULT = 1.38; // canvas 38% wider in stack mode
+            const PEEK_SCALE = 0.84;        // peek images scaled down slightly
 
-            function imgLayout(idx, useStackScale) {
+            function imgLayout(idx, useStackScale, scaleMul = 1) {
                 const img = images[idx];
                 if (!img || !img.naturalWidth) return null;
                 const dpr = Math.min(window.devicePixelRatio, 2);
@@ -1186,9 +1187,8 @@
                 const iw = img.naturalWidth, ih = img.naturalHeight;
                 let fitScale;
                 if (useStackScale) {
-                    // Size for normal canvas width, not the wider stack canvas
                     const normalCw = cw / STACK_CANVAS_MULT;
-                    fitScale = Math.min(normalCw / iw, ch / ih);
+                    fitScale = Math.min(normalCw / iw, ch / ih) * scaleMul;
                 } else {
                     fitScale = Math.min(cw / iw, ch / ih);
                 }
@@ -1214,7 +1214,7 @@
                         stackDarks[i] = 0.15;
                         for (const m of map) {
                             if (i === ((curIdx + m.rel + IMG_COUNT) % IMG_COUNT)) {
-                                const L = imgLayout(i, true);
+                                const L = imgLayout(i, true, PEEK_SCALE);
                                 if (L) {
                                     stackTargets[i] = L.sw * m.peek;
                                     stackDarks[i] = m.dark;
@@ -1234,7 +1234,7 @@
                     if (i === curIdx) {
                         stackOffsets[i] = 0;
                     } else {
-                        const L = imgLayout(i, true);
+                        const L = imgLayout(i, true, PEEK_SCALE);
                         const extra = L ? L.sw * 0.50 : 200;
                         stackOffsets[i] = stackTargets[i] > 0
                             ? stackTargets[i] + extra
@@ -1276,7 +1276,7 @@
                 for (const rel of checkOrder) {
                     const i = (curIdx + rel + IMG_COUNT) % IMG_COUNT;
                     if (i === curIdx) continue;
-                    const L = imgLayout(i, true);
+                    const L = imgLayout(i, true, PEEK_SCALE);
                     if (!L) continue;
                     const ix = L.cx + stackOffsets[i];
                     const iy = L.cy;
@@ -1355,16 +1355,16 @@
                 ];
 
                 for (const i of drawOrder) {
-                    const L = imgLayout(i, true);
+                    const isCurrent = i === curIdx;
+                    const L = imgLayout(i, true, isCurrent ? 1 : PEEK_SCALE);
                     if (!L) continue;
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
-                    const isCurrent = i === curIdx;
 
                     // Card shadow
                     ctx.save();
                     ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                    ctx.shadowBlur = isCurrent ? 24 : 12;
+                    ctx.shadowBlur = isCurrent ? 24 : 10;
                     ctx.shadowOffsetX = 0;
                     ctx.shadowOffsetY = 4;
                     ctx.fillStyle = '#0d0d0d';
@@ -1380,9 +1380,9 @@
                         ctx.restore();
                     }
 
-                    // Draw image at full brightness
+                    // Draw image — peek images more transparent
                     ctx.save();
-                    ctx.globalAlpha = isCurrent ? 1 : 0.92;
+                    ctx.globalAlpha = isCurrent ? 1 : 0.60;
                     ctx.drawImage(L.img, x, y, L.sw, L.sh);
                     ctx.restore();
 
@@ -1390,8 +1390,8 @@
                     ctx.save();
                     ctx.strokeStyle = isCurrent
                         ? 'rgba(0, 238, 187, 0.6)'
-                        : 'rgba(0, 180, 130, 0.28)';
-                    ctx.lineWidth = isCurrent ? 2.5 : 1.5;
+                        : 'rgba(0, 180, 130, 0.22)';
+                    ctx.lineWidth = isCurrent ? 2.5 : 1.2;
                     if (isCurrent) {
                         ctx.shadowColor = 'rgba(0, 220, 160, 0.5)';
                         ctx.shadowBlur = 20;
