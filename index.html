@@ -580,9 +580,20 @@
 
         // ===================== SCENE =====================
         const BG = '#050a10';
+        const BG_LIGHT = '#8ab8a0';  // target lighter green at full hero scroll
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(BG);
         scene.fog = new THREE.Fog(BG, 10, 30);
+
+        function lerpHex(a, b, t) {
+            const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+            const ar = (ah >> 16) & 0xff, ag = (ah >> 8) & 0xff, ab = ah & 0xff;
+            const br = (bh >> 16) & 0xff, bg = (bh >> 8) & 0xff, bb = bh & 0xff;
+            const rr = Math.round(ar + (br - ar) * t);
+            const rg = Math.round(ag + (bg - ag) * t);
+            const rb = Math.round(ab + (bb - ab) * t);
+            return '#' + ((1 << 24) | (rr << 16) | (rg << 8) | rb).toString(16).slice(1);
+        }
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 50);
         const camBase = { x: 0, y: 0, z: 7.0 };
@@ -1884,6 +1895,12 @@
 
             const tp = grassProg();
             curProg += (tp - curProg) * 3.5 * dt;
+
+            // Background lightens with hero scroll
+            const bgColor = lerpHex(BG, BG_LIGHT, curProg);
+            scene.background.set(bgColor);
+            scene.fog.color.set(bgColor);
+
             const tr = curProg * Math.PI * 2.5;
             const idleRot = Math.max(0, curProg - 1.0) * 7.0 * 0.25;
             curRot += ((tr + idleRot * (curProg >= 1.0 ? 1 : 0)) - curRot) * 2.5 * dt;
