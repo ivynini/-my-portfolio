@@ -110,11 +110,7 @@
             50% { transform: translate(30px,-25px) scale(1.25); }
         }
         /* Accent line at top */
-        .full-page .accent-line {
-            position: absolute; top: 0; left: 10%; right: 10%; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(0,200,140,0.3), transparent);
-            pointer-events: none;
-        }
+        .full-page .accent-line { display: none; }
 
         .page-content {
             position: relative; z-index: 1; max-width: 700px; width: 84vw;
