@@ -343,7 +343,7 @@
         /* Edge-positioned images emerging from left/right */
         .proj3-edge-img {
             position: absolute; z-index: 2;
-            width: 190px; height: auto; display: block;
+            width: 46vw; height: auto; display: block;
             border-radius: 4px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.38);
             pointer-events: none;
@@ -352,7 +352,7 @@
         .proj3-edge-img.left  { left: 1.6vw; }
         .proj3-edge-img.right { right: 1.6vw; }
         @media (max-width: 768px) {
-            .proj3-edge-img { width: 130px; }
+            .proj3-edge-img { width: 44vw; }
             .proj3-edge-img.left  { left: 1vw; }
             .proj3-edge-img.right { right: 1vw; }
         }
@@ -1773,15 +1773,15 @@
 
             function positionImages() {
                 const H = section.offsetHeight;
-                const tops = [0.10, 0.14, 0.32, 0.38, 0.54, 0.58];
+                const tops = [0.06, 0.15, 0.33, 0.42, 0.60, 0.69];
                 imgs.forEach(function(img, i) {
                     img.style.top = (H * tops[i]) + 'px';
                     const pair = Math.floor(i / 2);
                     meta[i] = {
                         el: img,
                         side: img.dataset.side,
-                        r0: 0.05 + pair * 0.28,
-                        r1: 0.30 + pair * 0.28,
+                        r0: 0.05 + pair * 0.30,
+                        r1: 0.32 + pair * 0.30,
                     };
                 });
             }
