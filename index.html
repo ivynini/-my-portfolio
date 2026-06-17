@@ -1770,7 +1770,7 @@
                 const sh = section.offsetHeight;
                 const wh = window.innerHeight;
                 const sy = window.scrollY;
-                const raw = (sy + wh - st) / (sh * 0.5 + wh * 0.15);
+                const raw = (sy + wh - st) / (sh * 0.70 + wh * 0.15);
                 return Math.max(0, Math.min(1, raw));
             }
 
@@ -1778,7 +1778,7 @@
                 requestAnimationFrame(update);
                 const sp = getProgress();
                 targetProgress = sp;
-                progress += (targetProgress - progress) * 0.06;
+                progress += (targetProgress - progress) * 0.10;
 
                 for (var m, t, ease, off, j = 0; j < meta.length; j++) {
                     m = meta[j];
