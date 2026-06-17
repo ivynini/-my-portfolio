@@ -217,17 +217,17 @@
         .a-delay-6 { transition-delay: 0.90s; }
         .a-delay-7 { transition-delay: 1.05s; }
 
-        /* About — mesh ring extension from hero globe */
+        /* About — polar grid + ring extension from hero 3D scene */
         #about::after {
             content: ''; position: absolute; pointer-events: none;
             top: -60vh; left: 50%; transform: translateX(-50%);
             width: 140vh; height: 140vh; border-radius: 50%;
+            background:
+                repeating-conic-gradient(rgba(0, 200, 140, 0.03) 0% 1.5%, transparent 1.5% 6%),
+                repeating-radial-gradient(circle, transparent 0px, transparent 12px, rgba(0, 200, 140, 0.05) 12px, transparent 13px);
             border: 1px solid rgba(0, 200, 140, 0.10);
-            box-shadow:
-                0 0 0 20vh rgba(0, 200, 140, 0.015),
-                inset 0 0 0 12vh rgba(0, 200, 140, 0.012);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 70%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 70%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 60%, transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 60%, transparent 100%);
         }
         #about::before {
             content: ''; position: absolute; pointer-events: none;
