@@ -408,7 +408,7 @@
 
         .gallery-label {
             position: absolute; z-index: 3;
-            color: #a0d8c0; font-size: 0.95rem;
+            color: #a0d8c0; font-size: 1.2rem;
             letter-spacing: 0.08em;
             pointer-events: none; opacity: 0;
             text-shadow: 0 0 18px rgba(0, 200, 140, 0.35);
@@ -417,7 +417,7 @@
         .gallery-label.on-left  { left: calc(1.6vw + 46vw + 8px); }
         .gallery-label.on-right { right: calc(1.6vw + 46vw + 8px); }
         @media (max-width: 768px) {
-            .gallery-label { font-size: 0.78rem; }
+            .gallery-label { font-size: 1rem; }
             .gallery-label.on-left  { left: calc(1vw + 44vw + 6px); }
             .gallery-label.on-right { right: calc(1vw + 44vw + 6px); }
         }
@@ -1832,7 +1832,7 @@
                     const pair = parseInt(lbl.dataset.pair);
                     var pos = lbl.dataset.pos;
                     var imgIdx = pos === 'top' ? pair * 2 : pair * 2 + 1;
-                    lbl.style.top = (H * tops[imgIdx]) + 'px';
+                    lbl.style.top = (H * (tops[imgIdx] + 0.07)) + 'px';
                     labelMeta[i] = {
                         el: lbl,
                         r0: 0.12 + pair * 0.30,
