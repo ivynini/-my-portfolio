@@ -303,6 +303,39 @@
         @media (max-width: 768px) {
             .puzzle-thumb { width: 36px; height: 36px; font-size: 0.75rem; }
         }
+
+        /* ====== Project 3 — Vine Growth ====== */
+        #project3 {
+            min-height: 100vh; padding: 50px 0 40px; overflow: hidden;
+            transition: background-color 0.6s ease;
+        }
+        .vine-canvas {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+        #project3 .project-wrap { position: relative; z-index: 1; }
+        #project3 .img-strip-wrap {
+            position: relative; overflow: hidden; cursor: grab;
+            margin-top: 30px;
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        }
+        #project3 .img-strip {
+            display: flex; gap: 22px; padding: 20px 3vw;
+            will-change: transform; transition: transform 0.5s cubic-bezier(0.25,1,0.5,1);
+        }
+        #project3 .img-card {
+            flex-shrink: 0; width: 240px;
+            opacity: 0; transform: translateY(50px);
+            transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1);
+        }
+        #project3 .img-card.visible { opacity: 1; transform: translateY(0); }
+        #project3 .img-card img {
+            width: 100%; height: auto; display: block;
+            border-radius: 10px; border: 1px solid rgba(0,200,140,0.12);
+            box-shadow: 0 6px 28px rgba(0,0,0,0.4);
+            user-select: none; -webkit-user-drag: none;
+        }
     </style>
 </head>
 <body>
@@ -394,6 +427,33 @@
             </div>
             <div class="puzzle-thumbs" id="puzzleThumbs"></div>
             <div class="puzzle-hint" id="puzzleHint">继续滚动以完成拼图</div>
+        </div>
+    </section>
+
+    <section id="project3" class="full-page">
+        <canvas class="vine-canvas" id="vineCanvas"></canvas>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
+        <div class="project-wrap">
+            <div class="project-text" id="project3Text">
+                <span class="section-label">Project 03</span>
+                <h2>自然生长</h2>
+                <p>跟随滚动，见证自然元素从界面边缘生长蔓延，营造沉浸式场景体验。</p>
+                <div class="tag-row">
+                    <span class="tag">场景设计</span>
+                    <span class="tag">动态生长</span>
+                    <span class="tag">视觉变换</span>
+                </div>
+            </div>
+            <div class="img-strip-wrap" id="stripWrap3">
+                <div class="img-strip" id="imgStrip3"></div>
+            </div>
+            <div class="strip-arrows">
+                <button class="strip-arrow" id="stripPrev3">←</button>
+                <span class="strip-indicator" id="stripIndicator3"></span>
+                <button class="strip-arrow" id="stripNext3">→</button>
+            </div>
         </div>
     </section>
 
@@ -909,7 +969,7 @@
 
         // Track active section for nav highlight
         const navBtns = document.querySelectorAll('.nav-btn');
-        const sections = ['about', 'project', 'project2', 'contact'];
+        const sections = ['about', 'project', 'project2', 'project3', 'contact'];
         const sectionEls = sections.map(id => document.getElementById(id));
         const heroEl = document.getElementById('hero');
         const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 4;
@@ -929,7 +989,7 @@
                     const top = el.offsetTop;
                     if (sy >= top) {
                         active = sections[i];
-                        if (active === 'project2') active = 'project';
+                        if (active === 'project2' || active === 'project3') active = 'project';
                         break;
                     }
                 }
@@ -1490,6 +1550,321 @@
 
             window.addEventListener('resize', resize);
             update();
+        })();
+
+        // ===================== VINE PROJECT (Project 3) =====================
+        (function vineProject() {
+            const canvas = document.getElementById('vineCanvas');
+            const section = document.getElementById('project3');
+            if (!canvas || !section) return;
+
+            const ctx = canvas.getContext('2d');
+            const IMG_COUNT = 8;
+            let dominantColor = { r: 25, g: 55, b: 30 };
+            let vines = [];
+            let progress = 0, targetProgress = 0;
+
+            function resize() {
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                const w = section.offsetWidth;
+                const h = section.offsetHeight;
+                canvas.width = w * dpr;
+                canvas.height = h * dpr;
+                canvas.style.width = w + 'px';
+                canvas.style.height = h + 'px';
+            }
+
+            function extractColor(img) {
+                const sc = document.createElement('canvas');
+                sc.width = 40; sc.height = 40;
+                const sctx = sc.getContext('2d');
+                sctx.drawImage(img, 0, 0, 40, 40);
+                const data = sctx.getImageData(0, 0, 40, 40).data;
+                let r = 0, g = 0, b = 0;
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i]; g += data[i + 1]; b += data[i + 2];
+                }
+                const n = data.length / 4;
+                return { r: Math.round(r / n), g: Math.round(g / n), b: Math.round(b / n) };
+            }
+
+            function generateVines() {
+                vines = [];
+                const W = section.offsetWidth;
+                const H = section.offsetHeight;
+                const perSide = 7;
+
+                for (let side = 0; side < 2; side++) {
+                    for (let v = 0; v < perSide; v++) {
+                        const startX = side === 0 ? -5 : W + 5;
+                        const baseY = H * (0.05 + v * 0.9 / perSide);
+                        const startY = baseY + (Math.random() - 0.5) * 60;
+                        const reach = 0.28 + Math.random() * 0.38;
+                        const endX = side === 0 ? W * reach : W * (1 - reach);
+                        const endY = startY + (Math.random() - 0.5) * H * 0.35;
+
+                        const cp1x = startX + (endX - startX) * (0.25 + Math.random() * 0.3);
+                        const cp1y = startY + (Math.random() - 0.5) * H * 0.15;
+                        const cp2x = startX + (endX - startX) * (0.55 + Math.random() * 0.3);
+                        const cp2y = endY + (Math.random() - 0.5) * H * 0.15;
+
+                        const leafCount = 9 + Math.floor(Math.random() * 14);
+                        const leaves = [];
+                        for (let l = 0; l < leafCount; l++) {
+                            const t = (l + 1) / leafCount;
+                            const u = 1 - t;
+                            const bx = u * u * u * startX + 3 * u * u * t * cp1x + 3 * u * t * t * cp2x + t * t * t * endX;
+                            const by = u * u * u * startY + 3 * u * u * t * cp1y + 3 * u * t * t * cp2y + t * t * t * endY;
+                            leaves.push({
+                                t,
+                                x: bx, y: by,
+                                size: 9 + Math.random() * 20,
+                                angle: (Math.random() - 0.5) * Math.PI * 0.7,
+                                sway: Math.random() * Math.PI * 2,
+                            });
+                        }
+
+                        vines.push({
+                            startX, startY, cp1x, cp1y, cp2x, cp2y, endX, endY,
+                            leaves,
+                            thick: 1.4 + Math.random() * 2.8,
+                            hue: 95 + Math.random() * 50,
+                            sat: 45 + Math.random() * 30,
+                            light: 22 + Math.random() * 20,
+                        });
+                    }
+                }
+            }
+
+            function drawVines() {
+                const W = section.offsetWidth;
+                const H = section.offsetHeight;
+                const dpr = Math.min(window.devicePixelRatio, 2);
+                ctx.save();
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.scale(dpr, dpr);
+
+                for (const vine of vines) {
+                    const firstT = vine.leaves.length > 0 ? vine.leaves[0].t : 0;
+                    const stemProg = Math.max(0, Math.min(1, (progress - firstT * 0.25) / 0.85));
+                    if (stemProg <= 0.01) continue;
+
+                    // Vine stem
+                    ctx.save();
+                    ctx.strokeStyle = `hsla(${vine.hue}, ${vine.sat}%, ${vine.light}%, ${0.65 * stemProg})`;
+                    ctx.lineWidth = vine.thick;
+                    ctx.lineCap = 'round';
+                    ctx.shadowColor = `hsla(${vine.hue}, 60%, 20%, 0.3)`;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.moveTo(vine.startX, vine.startY);
+                    const steps = Math.floor(stemProg * 55) + 1;
+                    for (let s = 1; s <= steps; s++) {
+                        const t = s / 55;
+                        const u = 1 - t;
+                        const x = u * u * u * vine.startX + 3 * u * u * t * vine.cp1x + 3 * u * t * t * vine.cp2x + t * t * t * vine.endX;
+                        const y = u * u * u * vine.startY + 3 * u * u * t * vine.cp1y + 3 * u * t * t * vine.cp2y + t * t * t * vine.endY;
+                        ctx.lineTo(x, y);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+
+                    // Secondary thinner vine
+                    if (stemProg > 0.15) {
+                        ctx.save();
+                        ctx.strokeStyle = `hsla(${vine.hue + 20}, ${vine.sat - 10}%, ${vine.light + 8}%, ${0.4 * stemProg})`;
+                        ctx.lineWidth = vine.thick * 0.5;
+                        ctx.lineCap = 'round';
+                        ctx.beginPath();
+                        const substeps = Math.floor((stemProg - 0.1) * 50) + 1;
+                        for (let s = 1; s <= substeps; s++) {
+                            const t = s / 50;
+                            const u = 1 - t;
+                            const x = u * u * u * vine.startX + 3 * u * u * t * vine.cp1x + 3 * u * t * t * vine.cp2x + t * t * t * vine.endX;
+                            const y = u * u * u * vine.startY + 3 * u * u * t * vine.cp1y + 3 * u * t * t * vine.cp2y + t * t * t * vine.endY;
+                            ctx.lineTo(x + (Math.sin(t * 8) * 8), y + (Math.cos(t * 7) * 6));
+                        }
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+
+                    // Leaves
+                    for (const leaf of vine.leaves) {
+                        if (stemProg <= leaf.t) continue;
+                        const leafGrow = Math.min(1, (stemProg - leaf.t) / 0.12);
+                        const scale = leafGrow < 1 ? leafGrow * leafGrow * (3 - 2 * leafGrow) : 1;
+
+                        ctx.save();
+                        ctx.globalAlpha = 0.7 * scale;
+                        ctx.translate(leaf.x, leaf.y);
+                        const sway = Math.sin(progress * 3.5 + leaf.sway) * 0.25;
+                        ctx.rotate(leaf.angle + sway);
+                        ctx.fillStyle = `hsla(${vine.hue + 10}, ${vine.sat + 5}%, ${vine.light + 12}%, 0.8)`;
+
+                        // Teardrop leaf
+                        const sz = leaf.size * scale;
+                        ctx.beginPath();
+                        ctx.moveTo(-sz * 0.7, 0);
+                        ctx.bezierCurveTo(-sz * 0.3, -sz * 0.4, sz * 0.4, -sz * 0.45, sz * 0.7, 0);
+                        ctx.bezierCurveTo(sz * 0.4, sz * 0.45, -sz * 0.3, sz * 0.4, -sz * 0.7, 0);
+                        ctx.fill();
+
+                        // Vein
+                        ctx.strokeStyle = `hsla(${vine.hue + 5}, 40%, ${vine.light - 5}%, 0.5)`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(-sz * 0.5, 0);
+                        ctx.lineTo(sz * 0.5, 0);
+                        ctx.stroke();
+
+                        ctx.restore();
+                    }
+                }
+                ctx.restore();
+            }
+
+            function getProgress() {
+                const st = section.offsetTop;
+                const sh = section.offsetHeight;
+                const wh = window.innerHeight;
+                const sy = window.scrollY;
+                const raw = (sy + wh - st) / (sh * 0.55 + wh * 0.2);
+                return Math.max(0, Math.min(1, raw));
+            }
+
+            function update() {
+                requestAnimationFrame(update);
+                const sp = getProgress();
+                targetProgress = sp;
+                progress += (targetProgress - progress) * 0.055;
+                drawVines();
+
+                const c = dominantColor;
+                const mix = Math.min(1, progress * 1.25);
+                const bgR = Math.round(5 + (c.r - 5) * mix);
+                const bgG = Math.round(10 + (c.g - 10) * mix);
+                const bgB = Math.round(16 + (c.b - 16) * mix);
+                section.style.backgroundColor = `rgb(${bgR},${bgG},${bgB})`;
+
+                const wrap = document.getElementById('stripWrap3');
+                if (wrap) {
+                    const stripVis = Math.max(0, Math.min(1, (progress - 0.6) / 0.35));
+                    wrap.style.opacity = stripVis;
+                    wrap.style.pointerEvents = stripVis > 0.3 ? 'auto' : 'none';
+                }
+            }
+
+            // Load image 1 for color
+            const refImg = new Image();
+            refImg.onload = () => {
+                dominantColor = extractColor(refImg);
+            };
+            refImg.src = 'images/3/1.png';
+
+            resize();
+            generateVines();
+            update();
+            window.addEventListener('resize', () => { resize(); generateVines(); });
+        })();
+
+        // ===================== PROJECT 3 IMAGE STRIP =====================
+        (function imgStrip3() {
+            const strip = document.getElementById('imgStrip3');
+            const wrap = document.getElementById('stripWrap3');
+            const prevBtn = document.getElementById('stripPrev3');
+            const nextBtn = document.getElementById('stripNext3');
+            const indicator = document.getElementById('stripIndicator3');
+            if (!strip) return;
+
+            const IMG_COUNT = 8;
+            for (let i = 1; i <= IMG_COUNT; i++) {
+                const card = document.createElement('div');
+                card.className = 'img-card';
+                const img = document.createElement('img');
+                img.src = 'images/3/' + i + '.png';
+                img.alt = 'Project 3 - ' + i;
+                img.loading = 'lazy';
+                card.appendChild(img);
+                strip.appendChild(card);
+            }
+
+            const cardW = 240 + 22; // width + gap
+            let offset = 0, maxOffset = 0;
+            let isDragging = false, startX = 0, baseOffset = 0, dragOffset = 0;
+
+            function updateMax() {
+                const cards = strip.querySelectorAll('.img-card');
+                const wrapW = wrap.clientWidth;
+                const totalW = cards.length * cardW - 22;
+                maxOffset = Math.max(0, totalW - wrapW + 100);
+            }
+
+            function setOffset(v, instant) {
+                updateMax();
+                offset = Math.max(0, Math.min(v, maxOffset));
+                strip.style.transition = instant ? 'none' : 'transform 0.5s cubic-bezier(0.25,1,0.5,1)';
+                strip.style.transform = 'translateX(' + (-offset) + 'px)';
+                if (indicator) {
+                    if (maxOffset < 10) {
+                        indicator.textContent = '← 拖拽或滑动查看全部 8 张图片 →';
+                    } else if (offset < 5) {
+                        indicator.textContent = '→ 向右滑动查看更多';
+                    } else if (offset >= maxOffset - 5) {
+                        indicator.textContent = '← 向左滑动查看';
+                    } else {
+                        indicator.textContent = '← 滑动查看更多 →';
+                    }
+                }
+            }
+
+            function onStart(e) {
+                isDragging = true;
+                strip.classList.add('dragging');
+                baseOffset = offset;
+                startX = e.touches ? e.touches[0].clientX : e.clientX;
+                dragOffset = 0;
+            }
+            function onMove(e) {
+                if (!isDragging) return;
+                const cx = e.touches ? e.touches[0].clientX : e.clientX;
+                dragOffset = startX - cx;
+                setOffset(baseOffset + dragOffset, true);
+            }
+            function onEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                strip.classList.remove('dragging');
+                setOffset(baseOffset + dragOffset);
+            }
+
+            wrap.addEventListener('mousedown', onStart);
+            wrap.addEventListener('touchstart', onStart, { passive: true });
+            window.addEventListener('mousemove', onMove);
+            window.addEventListener('touchmove', onMove, { passive: true });
+            window.addEventListener('mouseup', onEnd);
+            window.addEventListener('touchend', onEnd);
+
+            prevBtn.addEventListener('click', function(e) { e.stopPropagation(); setOffset(offset - 300); });
+            nextBtn.addEventListener('click', function(e) { e.stopPropagation(); setOffset(offset + 300); });
+
+            // IntersectionObserver for card entrance
+            const cardObserver = new IntersectionObserver(function(entries) {
+                entries.forEach(function(entry) {
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.15 });
+
+            // Observe cards after they're in DOM
+            setTimeout(function() {
+                const cards = strip.querySelectorAll('.img-card');
+                cards.forEach(function(c) { cardObserver.observe(c); });
+                const textEl = document.getElementById('project3Text');
+                if (textEl) cardObserver.observe(textEl);
+            }, 200);
+
+            window.addEventListener('resize', function() { setOffset(offset, true); });
+            setOffset(0, true);
         })();
 
         // ===================== ANIMATION =====================
