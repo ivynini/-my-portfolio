@@ -407,12 +407,19 @@
         }
 
         .gallery-label {
-            position: absolute; left: 50%; transform: translateX(-50%);
-            z-index: 3; color: #a0d8c0; font-size: 0.95rem;
-            letter-spacing: 0.08em; text-align: center;
+            position: absolute; z-index: 3;
+            color: #a0d8c0; font-size: 0.95rem;
+            letter-spacing: 0.08em;
             pointer-events: none; opacity: 0;
             text-shadow: 0 0 18px rgba(0, 200, 140, 0.35);
             white-space: nowrap;
+        }
+        .gallery-label.on-left  { left: calc(1.6vw + 46vw + 8px); }
+        .gallery-label.on-right { right: calc(1.6vw + 46vw + 8px); }
+        @media (max-width: 768px) {
+            .gallery-label { font-size: 0.78rem; }
+            .gallery-label.on-left  { left: calc(1vw + 44vw + 6px); }
+            .gallery-label.on-right { right: calc(1vw + 44vw + 6px); }
         }
 
         /* ====== Project 3 Gallery — Edge Image Reveal ====== */
@@ -532,12 +539,12 @@
         <img class="proj3-edge-img right" data-side="right" data-idx="1" src="images/3/6.png" alt="">
         <img class="proj3-edge-img left"  data-side="left"  data-idx="2" src="images/3/7.png" alt="">
         <img class="proj3-edge-img right" data-side="right" data-idx="2" src="images/3/8.png" alt="">
-        <span class="gallery-label" data-pair="0" data-pos="top">游戏主界面</span>
-        <span class="gallery-label" data-pair="0" data-pos="bot">人物属性界面</span>
-        <span class="gallery-label" data-pair="1" data-pos="top">奖励获得界面</span>
-        <span class="gallery-label" data-pair="1" data-pos="bot">关卡界面</span>
-        <span class="gallery-label" data-pair="2" data-pos="top">背包界面</span>
-        <span class="gallery-label" data-pair="2" data-pos="bot">抽卡界面</span>
+        <span class="gallery-label on-left"  data-pair="0" data-pos="top">游戏主界面</span>
+        <span class="gallery-label on-right" data-pair="0" data-pos="bot">人物属性界面</span>
+        <span class="gallery-label on-left"  data-pair="1" data-pos="top">奖励获得界面</span>
+        <span class="gallery-label on-right" data-pair="1" data-pos="bot">关卡界面</span>
+        <span class="gallery-label on-left"  data-pair="2" data-pos="top">背包界面</span>
+        <span class="gallery-label on-right" data-pair="2" data-pos="bot">抽卡界面</span>
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
