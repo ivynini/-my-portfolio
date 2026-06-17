@@ -16,6 +16,15 @@
         }
         #canvas { position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; display: block; }
         #hero { height: 400vh; position: relative; }
+        #hero::before {
+            content: ''; position: fixed; inset: 0; z-index: 1;
+            background-image:
+                linear-gradient(rgba(0,200,140,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,140,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+            pointer-events: none;
+        }
         .header {
             position: fixed; top: 0; left: 0; width: 100%;
             padding: 20px 40px; display: flex;
