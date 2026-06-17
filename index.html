@@ -1150,6 +1150,8 @@
 
             // Stack mode state
             let stackActive = false;
+            let exitingStack = false;
+            let exitTimer = 0;
             let stackDelay = 0;                         // brief delay before cards slide in
             let stackOffsets = [0, 0, 0, 0, 0];       // current horizontal offset per image (px)
             let stackTargets = [0, 0, 0, 0, 0];       // target offsets
@@ -1325,22 +1327,17 @@
                 setCanvasSize(); // make canvas wider
                 recalcStackTargets();
                 for (let i = 0; i < IMG_COUNT; i++) {
-                    if (i === curIdx) {
-                        stackOffsets[i] = 0;
-                    } else {
-                        const L = imgLayout(i, true, PEEK_SCALE);
-                        const extra = L ? L.sw * 0.50 : 200;
-                        stackOffsets[i] = stackTargets[i] > 0
-                            ? stackTargets[i] + extra
-                            : stackTargets[i] - extra;
-                    }
+                    // Start all non-current images at 0 (stacked behind center),
+                    // then they lerp outward to their peek positions for a smooth slide-out
+                    stackOffsets[i] = 0;
                 }
             }
 
             function exitStack() {
-                stackActive = false;
-                setCanvasSize(); // restore normal width
-                if (images[curIdx] && images[curIdx].naturalWidth) initFragments();
+                // Phase 1: slide all peek images back to center
+                for (let i = 0; i < IMG_COUNT; i++) stackTargets[i] = 0;
+                exitingStack = true;
+                exitTimer = 0;
             }
 
             function switchTo(idx) {
@@ -1455,16 +1452,6 @@
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
 
-                    // Card shadow
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-                    ctx.shadowBlur = isCurrent ? 24 : 10;
-                    ctx.shadowOffsetX = 0;
-                    ctx.shadowOffsetY = 4;
-                    ctx.fillStyle = '#0d0d0d';
-                    ctx.fillRect(x, y, L.sw, L.sh);
-                    ctx.restore();
-
                     // Subtle dim on non-current cards
                     if (!isCurrent) {
                         ctx.save();
@@ -1474,8 +1461,12 @@
                         ctx.restore();
                     }
 
-                    // Draw image — peek images more transparent
+                    // Draw image — with shadow beneath, more transparent for peek
                     ctx.save();
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+                    ctx.shadowBlur = isCurrent ? 24 : 10;
+                    ctx.shadowOffsetX = 0;
+                    ctx.shadowOffsetY = 4;
                     ctx.globalAlpha = isCurrent ? 1 : 0.60;
                     ctx.drawImage(L.img, x, y, L.sw, L.sh);
                     ctx.restore();
@@ -1533,27 +1524,43 @@
                 }
 
                 // Handle stack mode enter/exit
-                if (!switching && targetProgress >= 1.0 && !stackActive) {
+                if (!switching && !exitingStack && targetProgress >= 1.0 && !stackActive) {
                     stackDelay += 0.016;
                     if (stackDelay > 0.45) enterStack();
                 } else if (!switching && targetProgress < 1.0 && !stackActive) {
                     stackDelay = 0;
                 }
-                if (!switching && targetProgress < 0.82 && stackActive) {
+                if (!switching && !exitingStack && targetProgress < 0.82 && stackActive) {
                     exitStack();
                     stackDelay = 0;
                 }
 
+                // Handle exiting stack — wait for images to slide back to center
+                if (exitingStack) {
+                    exitTimer += 0.016;
+                    for (let i = 0; i < IMG_COUNT; i++) {
+                        stackOffsets[i] += (stackTargets[i] - stackOffsets[i]) * 0.14;
+                    }
+                    const allCentered = stackOffsets.every(function(o) { return Math.abs(o) < 1.5; });
+                    if (allCentered || exitTimer > 0.55) {
+                        stackActive = false;
+                        exitingStack = false;
+                        exitTimer = 0;
+                        setCanvasSize();
+                        if (images[curIdx] && images[curIdx].naturalWidth) initFragments();
+                    }
+                }
+
                 // Lerp progress (puzzle mode)
-                if (!stackActive) {
+                if (!stackActive && !exitingStack) {
                     progress += (targetProgress - progress) * 0.07;
                     if (switching && targetProgress < 0) {
                         progress += (targetProgress - progress) * 0.14;
                     }
                 }
 
-                // Lerp stack offsets
-                if (stackActive) {
+                // Lerp stack offsets (entering / idle stack)
+                if (stackActive && !exitingStack) {
                     for (let i = 0; i < IMG_COUNT; i++) {
                         const spd = i === curIdx ? 0.12 : 0.09;
                         stackOffsets[i] += (stackTargets[i] - stackOffsets[i]) * spd;
