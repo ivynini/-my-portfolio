@@ -340,27 +340,21 @@
             pointer-events: none; z-index: 0;
         }
         #project3 .project-wrap { position: relative; z-index: 1; }
-        #project3 .img-strip-wrap {
-            position: relative; overflow: hidden; cursor: grab;
-            margin-top: 30px;
-            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        /* Edge-positioned images emerging from left/right */
+        .proj3-edge-img {
+            position: absolute; z-index: 2;
+            width: 190px; height: auto; display: block;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.38);
+            pointer-events: none;
+            will-change: transform;
         }
-        #project3 .img-strip {
-            display: flex; gap: 22px; padding: 20px 3vw;
-            will-change: transform; transition: transform 0.5s cubic-bezier(0.25,1,0.5,1);
-        }
-        #project3 .img-card {
-            flex-shrink: 0; width: 240px;
-            opacity: 0; transform: translateY(50px);
-            transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1);
-        }
-        #project3 .img-card.visible { opacity: 1; transform: translateY(0); }
-        #project3 .img-card img {
-            width: 100%; height: auto; display: block;
-            border-radius: 10px; border: 1px solid rgba(0,200,140,0.12);
-            box-shadow: 0 6px 28px rgba(0,0,0,0.4);
-            user-select: none; -webkit-user-drag: none;
+        .proj3-edge-img.left  { left: 1.6vw; }
+        .proj3-edge-img.right { right: 1.6vw; }
+        @media (max-width: 768px) {
+            .proj3-edge-img { width: 130px; }
+            .proj3-edge-img.left  { left: 1vw; }
+            .proj3-edge-img.right { right: 1vw; }
         }
     </style>
 </head>
@@ -458,6 +452,12 @@
 
     <section id="project3" class="full-page">
         <canvas class="vine-canvas" id="vineCanvas"></canvas>
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="0" src="images/3/3.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="0" src="images/3/4.png" alt="">
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="1" src="images/3/5.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="1" src="images/3/6.png" alt="">
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="2" src="images/3/7.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="2" src="images/3/8.png" alt="">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
@@ -1582,6 +1582,25 @@
             let vines = [];
             let progress = 0, targetProgress = 0;
 
+            // Edge images
+            const edgeImgs = section.querySelectorAll('.proj3-edge-img');
+            const imgMeta = [];
+
+            function positionImages() {
+                const H = section.offsetHeight;
+                const tops = [0.14, 0.19, 0.36, 0.43, 0.58, 0.63];
+                edgeImgs.forEach(function(img, i) {
+                    img.style.top = (H * tops[i]) + 'px';
+                    const pair = Math.floor(i / 2);
+                    imgMeta[i] = {
+                        el: img,
+                        side: img.dataset.side,
+                        r0: 0.08 + pair * 0.23,
+                        r1: 0.33 + pair * 0.23,
+                    };
+                });
+            }
+
             function resize() {
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const w = section.offsetWidth;
@@ -1740,12 +1759,23 @@
                 targetProgress = sp;
                 progress += (targetProgress - progress) * 0.055;
                 drawVines();
+
+                // Animate edge images emerging from left/right
+                for (var m, t, ease, off, j = 0; j < imgMeta.length; j++) {
+                    m = imgMeta[j];
+                    t = Math.max(0, Math.min(1, (progress - m.r0) / (m.r1 - m.r0)));
+                    ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                    off = (1 - ease) * (m.side === 'left' ? -130 : 130);
+                    m.el.style.transform = 'translateX(' + off + '%)';
+                    m.el.style.opacity = ease;
+                }
             }
 
             resize();
             generateVines();
+            positionImages();
             update();
-            window.addEventListener('resize', function() { resize(); generateVines(); });
+            window.addEventListener('resize', function() { resize(); generateVines(); positionImages(); });
         })();
 
         // ===================== ANIMATION =====================
