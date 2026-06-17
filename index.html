@@ -406,6 +406,15 @@
             .proj3-edge-img.right { right: 1vw; }
         }
 
+        .gallery-label {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            z-index: 3; color: #a0d8c0; font-size: 0.95rem;
+            letter-spacing: 0.08em; text-align: center;
+            pointer-events: none; opacity: 0;
+            text-shadow: 0 0 18px rgba(0, 200, 140, 0.35);
+            white-space: nowrap;
+        }
+
         /* ====== Project 3 Gallery — Edge Image Reveal ====== */
         #project3-gallery {
             min-height: 300vh; padding: 60px 0; overflow: hidden; position: relative;
@@ -523,6 +532,12 @@
         <img class="proj3-edge-img right" data-side="right" data-idx="1" src="images/3/6.png" alt="">
         <img class="proj3-edge-img left"  data-side="left"  data-idx="2" src="images/3/7.png" alt="">
         <img class="proj3-edge-img right" data-side="right" data-idx="2" src="images/3/8.png" alt="">
+        <span class="gallery-label" data-pair="0" data-pos="top">游戏主界面</span>
+        <span class="gallery-label" data-pair="0" data-pos="bot">人物属性界面</span>
+        <span class="gallery-label" data-pair="1" data-pos="top">奖励获得界面</span>
+        <span class="gallery-label" data-pair="1" data-pos="bot">关卡界面</span>
+        <span class="gallery-label" data-pair="2" data-pos="top">背包界面</span>
+        <span class="gallery-label" data-pair="2" data-pos="bot">抽卡界面</span>
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
@@ -1786,7 +1801,9 @@
             if (!section) return;
 
             const imgs = section.querySelectorAll('.proj3-edge-img');
+            const labels = section.querySelectorAll('.gallery-label');
             const meta = [];
+            const labelMeta = [];
             let progress = 0, targetProgress = 0;
 
             function positionImages() {
@@ -1800,6 +1817,22 @@
                         side: img.dataset.side,
                         r0: 0.05 + pair * 0.30,
                         r1: 0.32 + pair * 0.30,
+                    };
+                });
+                // Position labels between each image pair
+                labelMeta.length = 0;
+                labels.forEach(function(lbl, i) {
+                    const pair = parseInt(lbl.dataset.pair);
+                    const pos = lbl.dataset.pos;
+                    const t0 = tops[pair * 2];
+                    const t1 = tops[pair * 2 + 1];
+                    const mid = (t0 + t1) / 2;
+                    const y = pos === 'top' ? (t0 + mid) / 2 : (mid + t1) / 2;
+                    lbl.style.top = (H * y) + 'px';
+                    labelMeta[i] = {
+                        el: lbl,
+                        r0: 0.12 + pair * 0.30,
+                        r1: 0.36 + pair * 0.30,
                     };
                 });
             }
@@ -1826,6 +1859,13 @@
                     off = (1 - ease) * (m.side === 'left' ? -130 : 130);
                     m.el.style.transform = 'translateX(' + off + '%)';
                     m.el.style.opacity = ease;
+                }
+                // Label animation
+                for (var lm, lt, le, k = 0; k < labelMeta.length; k++) {
+                    lm = labelMeta[k];
+                    lt = Math.max(0, Math.min(1, (progress - lm.r0) / (lm.r1 - lm.r0)));
+                    le = lt < 0.5 ? 2 * lt * lt : -1 + (4 - 2 * lt) * lt;
+                    lm.el.style.opacity = le;
                 }
             }
 
