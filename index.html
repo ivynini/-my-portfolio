@@ -344,7 +344,7 @@
         .proj3-edge-img {
             position: absolute; z-index: 2;
             width: 190px; height: auto; display: block;
-            border-radius: 12px;
+            border-radius: 4px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.38);
             pointer-events: none;
             will-change: transform;
@@ -355,6 +355,14 @@
             .proj3-edge-img { width: 130px; }
             .proj3-edge-img.left  { left: 1vw; }
             .proj3-edge-img.right { right: 1vw; }
+        }
+
+        /* ====== Project 3 Gallery — Edge Image Reveal ====== */
+        #project3-gallery {
+            min-height: 180vh; padding: 60px 0; overflow: hidden; position: relative;
+            background: linear-gradient(to bottom,
+                var(--dark) 0%,
+                var(--dark) 100%);
         }
     </style>
 </head>
@@ -452,12 +460,6 @@
 
     <section id="project3" class="full-page">
         <canvas class="vine-canvas" id="vineCanvas"></canvas>
-        <img class="proj3-edge-img left"  data-side="left"  data-idx="0" src="images/3/3.png" alt="">
-        <img class="proj3-edge-img right" data-side="right" data-idx="0" src="images/3/4.png" alt="">
-        <img class="proj3-edge-img left"  data-side="left"  data-idx="1" src="images/3/5.png" alt="">
-        <img class="proj3-edge-img right" data-side="right" data-idx="1" src="images/3/6.png" alt="">
-        <img class="proj3-edge-img left"  data-side="left"  data-idx="2" src="images/3/7.png" alt="">
-        <img class="proj3-edge-img right" data-side="right" data-idx="2" src="images/3/8.png" alt="">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
         <div class="accent-line"></div>
@@ -475,6 +477,18 @@
                 </div>
             </div>
         </div>
+    </section>
+
+    <section id="project3-gallery" class="full-page">
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="0" src="images/3/3.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="0" src="images/3/4.png" alt="">
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="1" src="images/3/5.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="1" src="images/3/6.png" alt="">
+        <img class="proj3-edge-img left"  data-side="left"  data-idx="2" src="images/3/7.png" alt="">
+        <img class="proj3-edge-img right" data-side="right" data-idx="2" src="images/3/8.png" alt="">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="accent-line"></div>
     </section>
 
     <section id="contact" class="full-page">
@@ -989,7 +1003,7 @@
 
         // Track active section for nav highlight
         const navBtns = document.querySelectorAll('.nav-btn');
-        const sections = ['about', 'project', 'project2', 'project3', 'contact'];
+        const sections = ['about', 'project', 'project2', 'project3', 'project3-gallery', 'contact'];
         const sectionEls = sections.map(id => document.getElementById(id));
         const heroEl = document.getElementById('hero');
         const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 4;
@@ -1009,7 +1023,7 @@
                     const top = el.offsetTop;
                     if (sy >= top) {
                         active = sections[i];
-                        if (active === 'project2' || active === 'project3') active = 'project';
+                        if (active === 'project2' || active === 'project3' || active === 'project3-gallery') active = 'project';
                         break;
                     }
                 }
@@ -1582,25 +1596,6 @@
             let vines = [];
             let progress = 0, targetProgress = 0;
 
-            // Edge images
-            const edgeImgs = section.querySelectorAll('.proj3-edge-img');
-            const imgMeta = [];
-
-            function positionImages() {
-                const H = section.offsetHeight;
-                const tops = [0.14, 0.19, 0.36, 0.43, 0.58, 0.63];
-                edgeImgs.forEach(function(img, i) {
-                    img.style.top = (H * tops[i]) + 'px';
-                    const pair = Math.floor(i / 2);
-                    imgMeta[i] = {
-                        el: img,
-                        side: img.dataset.side,
-                        r0: 0.08 + pair * 0.23,
-                        r1: 0.33 + pair * 0.23,
-                    };
-                });
-            }
-
             function resize() {
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const w = section.offsetWidth;
@@ -1759,10 +1754,55 @@
                 targetProgress = sp;
                 progress += (targetProgress - progress) * 0.055;
                 drawVines();
+            }
 
-                // Animate edge images emerging from left/right
-                for (var m, t, ease, off, j = 0; j < imgMeta.length; j++) {
-                    m = imgMeta[j];
+            resize();
+            generateVines();
+            update();
+            window.addEventListener('resize', function() { resize(); generateVines(); });
+        })();
+
+        // ===================== PROJECT 3 GALLERY (Edge Images) =====================
+        (function galleryProject() {
+            const section = document.getElementById('project3-gallery');
+            if (!section) return;
+
+            const imgs = section.querySelectorAll('.proj3-edge-img');
+            const meta = [];
+            let progress = 0, targetProgress = 0;
+
+            function positionImages() {
+                const H = section.offsetHeight;
+                const tops = [0.10, 0.14, 0.32, 0.38, 0.54, 0.58];
+                imgs.forEach(function(img, i) {
+                    img.style.top = (H * tops[i]) + 'px';
+                    const pair = Math.floor(i / 2);
+                    meta[i] = {
+                        el: img,
+                        side: img.dataset.side,
+                        r0: 0.05 + pair * 0.28,
+                        r1: 0.30 + pair * 0.28,
+                    };
+                });
+            }
+
+            function getProgress() {
+                const st = section.offsetTop;
+                const sh = section.offsetHeight;
+                const wh = window.innerHeight;
+                const sy = window.scrollY;
+                const raw = (sy + wh - st) / (sh * 0.5 + wh * 0.15);
+                return Math.max(0, Math.min(1, raw));
+            }
+
+            function update() {
+                requestAnimationFrame(update);
+                const sp = getProgress();
+                targetProgress = sp;
+                progress += (targetProgress - progress) * 0.06;
+
+                for (var m, t, ease, off, j = 0; j < meta.length; j++) {
+                    m = meta[j];
                     t = Math.max(0, Math.min(1, (progress - m.r0) / (m.r1 - m.r0)));
                     ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
                     off = (1 - ease) * (m.side === 'left' ? -130 : 130);
@@ -1771,11 +1811,9 @@
                 }
             }
 
-            resize();
-            generateVines();
             positionImages();
             update();
-            window.addEventListener('resize', function() { resize(); generateVines(); positionImages(); });
+            window.addEventListener('resize', positionImages);
         })();
 
         // ===================== ANIMATION =====================
