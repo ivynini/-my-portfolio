@@ -15,7 +15,11 @@
             cursor: default;
         }
         #canvas { position: sticky; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; display: block; }
-        #hero { height: 400vh; position: relative; }
+        #hero { height: 220vh; position: relative; }
+        #hero-bg {
+            position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: #050a10;
+        }
         #hero::before {
             content: ''; position: fixed; inset: 0; z-index: 1;
             background-image:
@@ -168,7 +172,9 @@
         .page-content.visible .about-line,
         .page-content.visible .about-sub,
         .page-content.visible .about-projects,
-        .page-content.visible .about-proj { opacity: 1; transform: translateY(0); }
+        .page-content.visible .about-proj,
+        .page-content.visible .back-top,
+        .page-content.visible .copyright { opacity: 1; transform: translateY(0); }
 
         /* ====== About text ====== */
         .about-line {
@@ -178,9 +184,9 @@
             transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.22,1,0.36,1);
         }
         .about-quote {
-            color: #00eebb; font-weight: 700; font-size: 1.35rem;
+            color: #ffffff; font-weight: 700; font-size: 1.35rem;
             letter-spacing: 0.06em;
-            text-shadow: 0 0 28px rgba(0, 238, 187, 0.55), 0 0 60px rgba(0, 200, 140, 0.25);
+            text-shadow: 0 0 28px rgba(255, 255, 255, 0.35), 0 0 60px rgba(200, 220, 200, 0.18);
             white-space: nowrap;
         }
         .about-sub {
@@ -193,20 +199,22 @@
             display: flex; flex-wrap: wrap; gap: 14px; margin-top: 20px;
         }
         .about-proj {
-            padding: 10px 26px; border-radius: 24px;
-            font-size: 0.95rem; letter-spacing: 0.05em;
-            border: 1px solid rgba(0, 200, 140, 0.25);
-            color: #90d8b8;
-            background: rgba(0, 160, 100, 0.06);
+            display: inline-block; padding: 10px 26px; border-radius: 24px;
+            font-size: 0.95rem; letter-spacing: 0.05em; text-decoration: none;
+            border: 1px solid rgba(0, 200, 140, 0.28);
+            color: #ffffff; cursor: pointer;
+            background: rgba(255, 255, 255, 0.07);
             opacity: 0; transform: translateY(16px);
             transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1),
-                        border-color 0.35s, background 0.35s, box-shadow 0.35s;
+                        border-color 0.35s, background 0.35s, box-shadow 0.35s, color 0.35s;
         }
         .about-proj:hover {
-            border-color: rgba(0, 220, 160, 0.55);
-            background: rgba(0, 180, 120, 0.12);
-            box-shadow: 0 0 22px rgba(0, 200, 140, 0.15);
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.45), 0 8px 24px rgba(0, 0, 0, 0.3);
+            transform: translateY(-3px);
         }
+        .page-content.visible .about-proj { opacity: 1; transform: translateY(0); }
+        .page-content.visible .about-proj:hover { transform: translateY(-3px); }
 
         /* Staggered delays */
         .a-delay-1 { transition-delay: 0.10s; }
@@ -217,45 +225,54 @@
         .a-delay-6 { transition-delay: 0.90s; }
         .a-delay-7 { transition-delay: 1.05s; }
 
-        /* About — polar grid + ring extension from hero 3D scene */
-        #about::after {
-            content: ''; position: absolute; pointer-events: none;
-            top: -60vh; left: 50%; transform: translateX(-50%);
-            width: 140vh; height: 140vh; border-radius: 50%;
-            background:
-                repeating-conic-gradient(rgba(0, 200, 140, 0.03) 0% 1.5%, transparent 1.5% 6%),
-                repeating-radial-gradient(circle, transparent 0px, transparent 12px, rgba(0, 200, 140, 0.05) 12px, transparent 13px);
-            border: 1px solid rgba(0, 200, 140, 0.10);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 60%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 25%, black 60%, transparent 100%);
+        /* About — polar grid removed, background matches hero end state */
+        #about { background: #1d2422; }
+        .about-img {
+            position: absolute; right: 4vw; top: 50%; transform: translateY(-50%);
+            width: 26vw; max-width: 400px; height: auto; z-index: 1;
+            border-radius: 8px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.45);
+            opacity: 0; transform: translateY(-50%) translateX(30px);
+            transition: opacity 0.9s ease 0.5s, transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.5s;
         }
-        #about::before {
-            content: ''; position: absolute; pointer-events: none;
-            top: -40vh; left: 50%; transform: translateX(-50%);
-            width: 100vh; height: 100vh; border-radius: 50%;
-            border: 1px solid rgba(0, 220, 160, 0.08);
-            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 65%, transparent 100%);
-            mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 65%, transparent 100%);
-        }
+        .about-img.visible { opacity: 1; transform: translateY(-50%) translateX(0); }
 
         /* Contact specific */
-        #contact .page-content { text-align: center; }
-        .contact-link {
-            display: inline-block; color: #00ddbb; font-size: 1.05rem;
-            text-decoration: none; letter-spacing: 0.05em;
-            padding: 14px 36px; border: 1px solid rgba(0,200,140,0.3);
-            border-radius: 30px; margin-top: 24px;
+        #contact .page-content { text-align: center; padding-bottom: 80px; }
+        .footer-info { margin-top: 48px; }
+        .back-top {
+            display: inline-block; color: #608070; font-size: 0.85rem;
+            text-decoration: none; letter-spacing: 0.08em;
+            padding: 8px 20px; border: 1px solid rgba(0,200,140,0.15);
+            border-radius: 20px; margin-bottom: 20px;
             transition: all 0.35s;
+            opacity: 0; transform: translateY(16px);
+        }
+        .page-content.visible .back-top {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 0.7s ease 0.6s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.6s, border-color 0.35s, color 0.35s;
+        }
+        .back-top:hover { border-color: rgba(0,220,160,0.5); color: #00ddbb; }
+        .copyright {
+            font-size: 0.78rem; color: #506050; letter-spacing: 0.04em;
+            opacity: 0; transform: translateY(12px);
+        }
+        .page-content.visible .copyright {
+            opacity: 1; transform: translateY(0);
+            transition: opacity 0.7s ease 0.7s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.7s;
+        }
+        .contact-link {
+            display: inline-block; color: #ffffff; font-size: 1.15rem;
+            text-decoration: none; letter-spacing: 0.04em;
+            margin-top: 24px;
+            transition: color 0.35s;
             opacity: 0; transform: translateY(20px);
         }
         .page-content.visible .contact-link {
             opacity: 1; transform: translateY(0);
-            transition: opacity 0.7s ease 0.5s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s, background 0.35s, box-shadow 0.35s;
+            transition: opacity 0.7s ease 0.5s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.5s, color 0.35s;
         }
-        .contact-link:hover {
-            background: rgba(0,200,140,0.08);
-            box-shadow: 0 0 30px rgba(0,200,140,0.15);
-        }
+        .contact-link:hover { color: #00ddbb; }
 
         /* ====== Section Colors ====== */
         :root {
@@ -269,7 +286,7 @@
         #project {
             min-height: 100vh; padding: 50px 0 30px;
             background: linear-gradient(to bottom,
-                var(--dark) 0%,
+                #1d2422 0%,
                 var(--proj1) 140px,
                 var(--proj1) calc(100% - 140px),
                 var(--proj2) 100%);
@@ -298,6 +315,26 @@
             max-width: 600px; margin: 0 auto 10px;
             opacity: 0; transform: translateY(18px);
             transition: opacity 0.7s ease 0.28s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.28s;
+        }
+        #project .project-text h2 {
+            font-size: 3.2rem; font-weight: 900; letter-spacing: 0.12em;
+            background: linear-gradient(180deg, #5c3d0e 0%, #5c3d0e 65%, #3a7a4a 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 4px rgba(30, 50, 20, 0.5));
+        }
+        #project .project-text p  { color: #5c3d0e; }
+        #project3 .project-text h2  { color: #1a3a28; text-shadow: none; }
+        #project3 .project-text p   { color: #2a4a3a; }
+        #project3 .project-text .section-label { color: #1a6a40; }
+        #project2 .project-text h2 {
+            font-size: 3.2rem; font-weight: 900; letter-spacing: 0.12em;
+            background: linear-gradient(180deg, #0a1a3a 0%, #0a1a3a 55%, #1a4a8a 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+            filter: drop-shadow(0 2px 4px rgba(10, 20, 50, 0.5));
         }
         .project-text .tag-row {
             justify-content: center;
@@ -366,8 +403,7 @@
         #project2 {
             min-height: 100vh; padding: 50px 0 40px; overflow: visible;
             background: linear-gradient(to bottom,
-                var(--proj1) 0%,
-                var(--proj2) 140px,
+                var(--proj2) 0%,
                 var(--proj2) calc(100% - 140px),
                 var(--proj3) 100%);
         }
@@ -405,10 +441,8 @@
         #project3 {
             min-height: 100vh; padding: 50px 0 40px; overflow: hidden;
             background: linear-gradient(to bottom,
-                var(--proj2) 0%,
-                var(--proj3) 140px,
-                var(--proj3) calc(100% - 140px),
-                var(--dark) 100%);
+                var(--proj3) 0%,
+                var(--proj3) 100%);
         }
         .vine-canvas {
             position: absolute; inset: 0; width: 100%; height: 100%;
@@ -434,26 +468,89 @@
 
         .gallery-label {
             position: absolute; z-index: 3;
-            color: #a0d8c0; font-size: 1.2rem;
+            color: #F2EAC5; font-size: 1.7rem; font-weight: 900;
             letter-spacing: 0.08em;
             pointer-events: none; opacity: 0;
-            text-shadow: 0 0 18px rgba(0, 200, 140, 0.35);
             white-space: nowrap;
+            padding: 12px 28px;
+            text-shadow:
+                0 0 8px rgba(26, 47, 45, 0.50),
+                0 0 18px rgba(26, 47, 45, 0.30),
+                0 1px 2px rgba(0, 0, 0, 0.40);
         }
-        .gallery-label.on-left  { left: calc(1.6vw + 46vw + 8px); }
-        .gallery-label.on-right { right: calc(1.6vw + 46vw + 8px); }
+        .gallery-label.on-left {
+            left: calc(1.6vw + 46vw + 34px);
+            border-radius: 0 4px 4px 0;
+            background: linear-gradient(to right, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 80%);
+        }
+        .gallery-label.on-left::before {
+            content: '|'; position: absolute;
+            left: 4px; top: 50%; transform: translateY(-50%);
+            color: #1A2F2D; font-weight: 900; font-size: 1.3em; line-height: 1;
+        }
+        .gallery-label.on-right {
+            right: calc(1.6vw + 46vw + 34px);
+            border-radius: 4px 0 0 4px;
+            background: linear-gradient(to left, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0) 80%);
+        }
+        .gallery-label.on-right::before {
+            content: '|'; position: absolute;
+            right: 4px; top: 50%; transform: translateY(-50%);
+            color: #1A2F2D; font-weight: 900; font-size: 1.3em; line-height: 1;
+        }
         @media (max-width: 768px) {
-            .gallery-label { font-size: 1rem; }
-            .gallery-label.on-left  { left: calc(1vw + 44vw + 6px); }
-            .gallery-label.on-right { right: calc(1vw + 44vw + 6px); }
+            .gallery-label { font-size: 1.65rem; }
+            .gallery-label.on-left  { left: calc(1vw + 44vw + 20px); }
+            .gallery-label.on-right { right: calc(1vw + 44vw + 20px); }
         }
 
         /* ====== Project 3 Gallery — Edge Image Reveal ====== */
         #project3-gallery {
-            min-height: 300vh; padding: 60px 0; overflow: hidden; position: relative;
-            background: linear-gradient(to bottom,
-                var(--dark) 0%,
-                var(--dark) 100%);
+            min-height: 180vh; padding: 40px 0 0; overflow: hidden; position: relative;
+            background: linear-gradient(to bottom, var(--proj3) 0%, var(--proj3) calc(100% - 160px), var(--dark) 100%);
+        }
+        .float-node {
+            position: absolute; z-index: 1; pointer-events: none;
+            width: var(--size); height: var(--size);
+            background: rgba(0, 220, 160, 0.7);
+            border-radius: 50%;
+            box-shadow: 0 0 calc(var(--size) * 3) rgba(0, 220, 160, 0.5),
+                        0 0 calc(var(--size) * 6) rgba(0, 200, 140, 0.25);
+            animation: nodeFloat 7s ease-in-out infinite,
+                       nodePulse 3s ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        @keyframes nodeFloat {
+            0%, 100% { transform: translate(0, 0); }
+            25%  { transform: translate(14px, -18px); }
+            50%  { transform: translate(-8px, -32px); }
+            75%  { transform: translate(-18px, -12px); }
+        }
+        @keyframes nodePulse {
+            0%, 100% { opacity: 0.35; }
+            50%  { opacity: 0.85; }
+        }
+        #contact { background: var(--dark); overflow: hidden; }
+        #contact .orb-1 {
+            width: 400px; height: 400px; top: -100px; right: -80px;
+            background: rgba(0, 200, 140, 0.12);
+            filter: blur(80px); opacity: 0.7;
+            animation: orbFloat1 12s ease-in-out infinite;
+        }
+        #contact .orb-2 {
+            width: 320px; height: 320px; bottom: -80px; left: -60px;
+            background: rgba(0, 160, 220, 0.10);
+            filter: blur(70px); opacity: 0.6;
+            animation: orbFloat2 15s ease-in-out infinite;
+        }
+        #contact::before {
+            content: ''; position: absolute; inset: 0; z-index: 0;
+            background-image:
+                linear-gradient(rgba(0,200,140,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,200,140,0.04) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridShift 20s linear infinite;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -467,6 +564,7 @@
         </nav>
     </header>
     <section id="hero">
+        <div id="hero-bg"></div>
         <canvas id="canvas"></canvas>
         <div class="scroll-hint" id="scrollHint">
             <span>下滑探索</span>
@@ -486,11 +584,12 @@
             <p class="about-line a-delay-3">我想让<span class="about-quote">"科技中长出生命的嫩芽"</span>。</p>
             <p class="about-sub a-delay-4">整体风格采用绿色，加上AI协助生成以下项目页面：</p>
             <div class="about-projects a-delay-5">
-                <span class="about-proj a-delay-5">校园咖啡APP</span>
-                <span class="about-proj a-delay-6">星露谷游戏官网</span>
-                <span class="about-proj a-delay-7">自设抽卡游戏界面</span>
+                <a href="#project" class="about-proj a-delay-5">校园咖啡APP</a>
+                <a href="#project2" class="about-proj a-delay-6">星露谷游戏官网</a>
+                <a href="#project3" class="about-proj a-delay-7">自设抽卡游戏界面</a>
             </div>
         </div>
+        <img class="about-img" src="images/about.png" alt="">
     </section>
 
     <section id="project" class="full-page">
@@ -516,7 +615,6 @@
                 <div class="strip-arrow prev" id="stripPrev">←</div>
                 <div class="strip-arrow next" id="stripNext">→</div>
             </div>
-            <div class="strip-indicator" id="stripIndicator">← 拖拽或滑动查看全部 7 张图片 →</div>
         </div>
     </section>
 
@@ -549,11 +647,6 @@
                 <p>葱郁森林悬浮着无数灵屿，草木孕育出温柔生灵，世代守护这片静谧天地。岁月流转间，负面心绪凝结成暗影恶灵，游荡林间侵蚀生机，打破了往日祥和。</p>
                 <p>心怀赤诚的旅人成为引灵人，依托古树灵台催动灵韵之力，召唤各类林间伙伴。灵动精灵、山野异兽、自然灵体各有专属能力，缔结契约便可并肩同行。</p>
                 <p>每次召唤都是邂逅新伙伴的机缘，集齐强力生灵后，便能组队深入秘境各处，驱散游荡恶灵，净化被污染的林地，逐步恢复森屿原本温暖安宁的模样。</p>
-                <div class="tag-row">
-                    <span class="tag">世界观</span>
-                    <span class="tag">森屿栖灵</span>
-                    <span class="tag">引灵人</span>
-                </div>
             </div>
         </div>
     </section>
@@ -579,12 +672,24 @@
     <section id="contact" class="full-page">
         <div class="orb orb-1"></div>
         <div class="orb orb-2"></div>
+        <div class="float-node" style="top:15%;left:10%;--delay:0s;--size:6px;"></div>
+        <div class="float-node" style="top:25%;right:12%;--delay:1.5s;--size:5px;"></div>
+        <div class="float-node" style="top:50%;left:8%;--delay:3s;--size:7px;"></div>
+        <div class="float-node" style="top:60%;right:10%;--delay:4.5s;--size:4px;"></div>
+        <div class="float-node" style="top:35%;left:50%;--delay:2s;--size:5px;"></div>
+        <div class="float-node" style="top:70%;left:45%;--delay:5s;--size:6px;"></div>
+        <div class="float-node" style="top:80%;right:18%;--delay:3.5s;--size:5px;"></div>
+        <div class="float-node" style="top:10%;right:30%;--delay:1s;--size:4px;"></div>
         <div class="accent-line"></div>
         <div class="page-content">
             <span class="section-label">Contact</span>
             <h2>联系我</h2>
             <p>如果你对我的作品感兴趣，或想一起合作，欢迎随时联系我。</p>
             <a href="mailto:ivynini@example.com" class="contact-link">ivynini@example.com</a>
+            <div class="footer-info">
+                <a href="#hero" class="back-top">↑ 返回顶部</a>
+                <p class="copyright">© 2026 丁羽微 · 保留所有权利</p>
+            </div>
         </div>
     </section>
 
@@ -599,7 +704,7 @@
         const scrollHint = document.getElementById('scrollHint');
 
         // ===================== RENDERER =====================
-        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.shadowMap.enabled = true;
@@ -610,9 +715,30 @@
 
         // ===================== SCENE =====================
         const BG = '#050a10';
+        const BG_END = '#313930';
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(BG);
+        // Scene background is transparent — CSS radial gradient handles the color
+        scene.background = null;
         scene.fog = new THREE.Fog(BG, 10, 30);
+
+        const heroBg = document.getElementById('hero-bg');
+
+        function lerpHex(a, b, t) {
+            const ah = parseInt(a.slice(1), 16), bh = parseInt(b.slice(1), 16);
+            const ar = (ah >> 16) & 255, ag = (ah >> 8) & 255, ab = ah & 255;
+            const br = (bh >> 16) & 255, bg = (bh >> 8) & 255, bb = bh & 255;
+            const r = Math.round(ar + (br - ar) * t);
+            const g = Math.round(ag + (bg - ag) * t);
+            const bl = Math.round(ab + (bb - ab) * t);
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + bl).toString(16).slice(1);
+        }
+
+        function updateHeroBg(prog) {
+            const diag = Math.ceil(Math.sqrt(window.innerWidth ** 2 + window.innerHeight ** 2));
+            const radius = prog * diag;
+            const outerColor = lerpHex(BG, BG_END, prog);
+            heroBg.style.background = `radial-gradient(circle ${radius}px at 50vw 50vh, ${BG_END}, ${outerColor})`;
+        }
 
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.3, 50);
         const camBase = { x: 0, y: 0, z: 7.0 };
@@ -620,7 +746,9 @@
         camera.lookAt(0, 0, 0);
 
         // ===================== LIGHTING =====================
-        scene.add(new THREE.AmbientLight('#152530', 2.0));
+        const ambient = new THREE.AmbientLight('#152530', 2.0);
+        scene.add(ambient);
+        const AMBIENT_BASE = 2.0, AMBIENT_END = 5.5;
 
         const key = new THREE.DirectionalLight('#fffef5', 6.0);
         key.position.set(5, 6, 5);
@@ -631,14 +759,17 @@
         key.shadow.camera.top = 6; key.shadow.camera.bottom = -6;
         key.shadow.bias = -0.0002; key.shadow.normalBias = 0.03;
         scene.add(key);
+        const KEY_BASE = 6.0, KEY_END = 10.5;
 
         const rim = new THREE.DirectionalLight('#4488aa', 2.2);
         rim.position.set(-4, 1, -4);
         scene.add(rim);
+        const RIM_BASE = 2.2, RIM_END = 3.8;
 
         const fill = new THREE.DirectionalLight('#1a2a3a', 1.0);
         fill.position.set(0, -1.5, 3);
         scene.add(fill);
+        const FILL_BASE = 1.0, FILL_END = 3.0;
 
         const ptBottom = new THREE.PointLight('#0044cc', 14, 7, 1.5);
         ptBottom.position.set(0, -2.8, 0);
@@ -827,10 +958,7 @@
             nodeGroup.add(n);
         }
 
-        // ===================== HOLOGRAPHIC GRID FLOOR =====================
-        const gridHelper = new THREE.PolarGridHelper(6, 60, 32, 128, '#0a2a20', '#0a2a20');
-        gridHelper.position.y = -3.5;
-        scene.add(gridHelper);
+        // ===================== HOLOGRAPHIC GRID FLOOR (removed) =====================
 
         // ===================== SCANNER RING (oscillates up/down) =====================
         const scanGeo = new THREE.TorusGeometry(R * 1.25, 0.008, 8, 160);
@@ -930,7 +1058,7 @@
         const TOTAL = BENDS.length * PER_MESH; // 56000
         const SEGS = 5;
 
-        const meshes = [], allData = [], dummies = [];
+        const meshes = [], allData = [], dummies = [], grassMats = [];
         const grassGrp = new THREE.Group();
         rotGroup.add(grassGrp);
 
@@ -959,6 +1087,7 @@
                 roughness: 0.45, metalness: 0.0,
                 side: THREE.DoubleSide, color: new THREE.Color('#ffffff'), depthWrite: true,
             });
+            grassMats.push(mat);
             const mesh = new THREE.InstancedMesh(geo, mat, PER_MESH);
             mesh.castShadow = true; mesh.receiveShadow = true;
             const data = []; const dum = new THREE.Object3D();
@@ -1076,6 +1205,15 @@
             });
         });
 
+        // About page jump links
+        document.querySelectorAll('.about-proj').forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const el = document.querySelector(link.getAttribute('href'));
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
         // IntersectionObserver for section entrance animations
         const sectionObserver = new IntersectionObserver(entries => {
             entries.forEach(entry => {
@@ -1084,14 +1222,14 @@
                 }
             });
         }, { threshold: 0.25 });
-        document.querySelectorAll('.page-content,.project-text').forEach(el => sectionObserver.observe(el));
+        document.querySelectorAll('.page-content,.project-text,.about-img').forEach(el => sectionObserver.observe(el));
 
         // Track active section for nav highlight
         const navBtns = document.querySelectorAll('.nav-btn');
         const sections = ['about', 'project', 'project2', 'project3', 'project3-gallery', 'contact'];
         const sectionEls = sections.map(id => document.getElementById(id));
         const heroEl = document.getElementById('hero');
-        const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 4;
+        const heroEnd = () => heroEl ? heroEl.offsetTop + heroEl.offsetHeight : window.innerHeight * 2.2;
 
         function updateActiveNav() {
             const sy = window.scrollY + window.innerHeight * 0.35;
@@ -1225,6 +1363,9 @@
             const ctx = canvas.getContext('2d');
             const COLS = 7, ROWS = 5;
             const IMG_COUNT = 5;
+            const WIDER = 1.38;                // canvas always wider so peeks can exit center cover
+            const CENTER_SCALE = 0.88;         // center card scale in stack (leaves side room)
+            const PEEK_SCALE = 0.65;           // peek card scale in stack
 
             const images = [];
             let loaded = 0, curIdx = 0;
@@ -1314,20 +1455,22 @@
                 const img = images[curIdx];
                 if (!img || !img.naturalWidth) {
                     canvas.width = 800; canvas.height = 500;
+                    canvas.style.position = ''; canvas.style.left = ''; canvas.style.transform = '';
                     canvas.style.width = '100%'; canvas.style.height = 'auto';
-                    canvas.style.marginLeft = '0';
                     return;
                 }
                 const maxW = Math.min(stage.clientWidth || 800, 800);
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const ratio = img.naturalHeight / img.naturalWidth;
-                const wMult = stackActive ? STACK_CANVAS_MULT : 1.0;
-                const cssW = Math.round(maxW * wMult);
-                canvas.width = Math.round(cssW * dpr);
-                canvas.height = Math.round(cssW * ratio * dpr);
-                canvas.style.width = cssW + 'px';
-                canvas.style.height = Math.round(cssW * ratio) + 'px';
-                canvas.style.marginLeft = stackActive ? Math.round((maxW - cssW) / 2) + 'px' : '0';
+                const normalW = Math.round(maxW);
+                // Canvas always wider — peeks need side room; height from normal width
+                canvas.width = Math.round(normalW * WIDER * dpr);
+                canvas.height = Math.round(normalW * ratio * dpr);
+                canvas.style.position = 'relative';
+                canvas.style.left = '50%';
+                canvas.style.transform = 'translateX(-50%)';   // centers canvas even when wider than stage
+                canvas.style.width = Math.round(normalW * WIDER) + 'px';
+                canvas.style.height = Math.round(normalW * ratio) + 'px';
             }
 
             function resize() {
@@ -1357,33 +1500,24 @@
             }
 
             // ---- Stack mode helpers ----
-            const STACK_CANVAS_MULT = 1.38; // canvas 38% wider in stack mode
-            const PEEK_SCALE = 0.84;        // peek images scaled down slightly
 
-            function imgLayout(idx, useStackScale, scaleMul = 1) {
+            function imgLayout(idx, scaleMul = 1) {
                 const img = images[idx];
                 if (!img || !img.naturalWidth) return null;
                 const dpr = Math.min(window.devicePixelRatio, 2);
                 const cw = canvas.width / dpr, ch = canvas.height / dpr;
                 const iw = img.naturalWidth, ih = img.naturalHeight;
-                let fitScale;
-                if (useStackScale) {
-                    const normalCw = cw / STACK_CANVAS_MULT;
-                    fitScale = Math.min(normalCw / iw, ch / ih) * scaleMul;
-                } else {
-                    fitScale = Math.min(cw / iw, ch / ih);
-                }
+                const fitScale = Math.min(cw / iw, ch / ih) * scaleMul;
                 const sw = iw * fitScale, sh = ih * fitScale;
                 const cx = (cw - sw) / 2, cy = (ch - sh) / 2;
                 return { img, sw, sh, cx, cy, cw, ch };
             }
 
             function recalcStackTargets() {
-                // Peek offsets: larger = card shifted further, more edge visible
                 const map = [
                     { rel: -2, peek: -0.56, dark: 0.08 },
-                    { rel: -1, peek: -0.32, dark: 0.03 },
-                    { rel: +1, peek: +0.32, dark: 0.03 },
+                    { rel: -1, peek: -0.52, dark: 0.03 },
+                    { rel: +1, peek: +0.52, dark: 0.03 },
                     { rel: +2, peek: +0.56, dark: 0.08 },
                 ];
                 for (let i = 0; i < IMG_COUNT; i++) {
@@ -1395,7 +1529,7 @@
                         stackDarks[i] = 0.15;
                         for (const m of map) {
                             if (i === ((curIdx + m.rel + IMG_COUNT) % IMG_COUNT)) {
-                                const L = imgLayout(i, true, PEEK_SCALE);
+                                const L = imgLayout(i, PEEK_SCALE);
                                 if (L) {
                                     stackTargets[i] = L.sw * m.peek;
                                     stackDarks[i] = m.dark;
@@ -1409,11 +1543,8 @@
             function enterStack() {
                 if (stackActive) return;
                 stackActive = true;
-                setCanvasSize(); // make canvas wider
                 recalcStackTargets();
                 for (let i = 0; i < IMG_COUNT; i++) {
-                    // Start all non-current images at 0 (stacked behind center),
-                    // then they lerp outward to their peek positions for a smooth slide-out
                     stackOffsets[i] = 0;
                 }
             }
@@ -1431,10 +1562,10 @@
                 switchTarget = idx;
 
                 if (stackActive) {
-                    // Stack mode: slide cards
+                    // Stack mode: slide cards — keep canvas dimensions
                     curIdx = idx;
                     highlightThumb();
-                    resize(); // updates canvas for new image + recalc targets
+                    recalcStackTargets();
                 } else {
                     // Puzzle mode: scatter → swap → reassemble
                     targetProgress = -0.18;
@@ -1452,7 +1583,7 @@
                 for (const rel of checkOrder) {
                     const i = (curIdx + rel + IMG_COUNT) % IMG_COUNT;
                     if (i === curIdx) continue;
-                    const L = imgLayout(i, true, PEEK_SCALE);
+                    const L = imgLayout(i, PEEK_SCALE);
                     if (!L) continue;
                     const ix = L.cx + stackOffsets[i];
                     const iy = L.cy;
@@ -1519,7 +1650,7 @@
 
                 for (const i of drawOrder) {
                     const isCurrent = i === curIdx;
-                    const L = imgLayout(i, true, isCurrent ? 1 : PEEK_SCALE);
+                    const L = imgLayout(i, isCurrent ? CENTER_SCALE : PEEK_SCALE);
                     if (!L) continue;
                     const x = L.cx + stackOffsets[i];
                     const y = L.cy;
@@ -1840,10 +1971,22 @@
             let progress = 0, targetProgress = 0;
 
             function positionImages() {
-                const H = section.offsetHeight;
-                const tops = [0.02, 0.14, 0.28, 0.40, 0.54, 0.66];
+                const VH = window.innerHeight;
+                // Absolute tops matching the original 300vh layout spacing
+                const tops = [0.02, 0.14, 0.28, 0.40, 0.54, 0.66].map(function(t) { return t * 300 * VH / 100; });
+                const imgW = section.offsetWidth * 0.46;
+                let maxBottom = 0;
                 imgs.forEach(function(img, i) {
-                    img.style.top = (H * tops[i]) + 'px';
+                    img.style.top = tops[i] + 'px';
+                    // Measure actual rendered height
+                    let ih = 0;
+                    if (img.naturalWidth && img.naturalHeight) {
+                        ih = imgW * (img.naturalHeight / img.naturalWidth);
+                    }
+                    if (!ih && img.offsetHeight) ih = img.offsetHeight;
+                    if (!ih) ih = imgW * 1.5;
+                    const bottom = tops[i] + ih;
+                    if (bottom > maxBottom) maxBottom = bottom;
                     const pair = Math.floor(i / 2);
                     meta[i] = {
                         el: img,
@@ -1852,17 +1995,22 @@
                         r1: 0.32 + pair * 0.30,
                     };
                 });
-                // Position labels at the same vertical position as their matching image
+                // Set section height to end just below the last image
+                section.style.minHeight = (maxBottom + VH * 0.08) + 'px';
+                // Re-read H for label positioning
+                const H = section.offsetHeight;
                 labelMeta.length = 0;
                 labels.forEach(function(lbl, i) {
                     const pair = parseInt(lbl.dataset.pair);
                     var pos = lbl.dataset.pos;
                     var imgIdx = pos === 'top' ? pair * 2 : pair * 2 + 1;
-                    lbl.style.top = (H * (tops[imgIdx] + 0.07)) + 'px';
+                    var vOff = pos === 'bot' ? VH * 0.26 : VH * 0.18;
+                    lbl.style.top = (tops[imgIdx] + vOff) + 'px';
                     labelMeta[i] = {
                         el: lbl,
                         r0: 0.12 + pair * 0.30,
                         r1: 0.36 + pair * 0.30,
+                        dir: lbl.classList.contains('on-left') ? 1 : -1,
                     };
                 });
             }
@@ -1890,16 +2038,27 @@
                     m.el.style.transform = 'translateX(' + off + '%)';
                     m.el.style.opacity = ease;
                 }
-                // Label animation
-                for (var lm, lt, le, k = 0; k < labelMeta.length; k++) {
+                // Label animation — slide from opposite direction of its image
+                for (var lm, lt, le, loff, k = 0; k < labelMeta.length; k++) {
                     lm = labelMeta[k];
                     lt = Math.max(0, Math.min(1, (progress - lm.r0) / (lm.r1 - lm.r0)));
                     le = lt < 0.5 ? 2 * lt * lt : -1 + (4 - 2 * lt) * lt;
+                    loff = (1 - le) * lm.dir * 130;
                     lm.el.style.opacity = le;
+                    lm.el.style.transform = 'translateX(' + loff + '%)';
                 }
             }
 
             positionImages();
+            // Re-position after images finish loading for accurate dimensions
+            var galleryLoadCount = 0;
+            imgs.forEach(function(img) {
+                if (img.complete) { galleryLoadCount++; }
+                else { img.addEventListener('load', function() {
+                    galleryLoadCount++;
+                    if (galleryLoadCount >= imgs.length) positionImages();
+                }); }
+            });
             update();
             window.addEventListener('resize', positionImages);
         })();
@@ -1926,6 +2085,23 @@
             // Soil fades in with scroll
             const soilTarget = 0.06 + curProg * 0.94;
             soilMat.opacity += (soilTarget - soilMat.opacity) * 4.0 * dt;
+
+            // Background color radiates from center — stops at mid-state
+            const bgProg = Math.max(0, Math.min(1, curProg));
+            updateHeroBg(bgProg);
+            const fogHex = lerpHex(BG, BG_END, bgProg);
+            scene.fog.color.set(fogHex);
+
+            // Adapt lighting + grass brightness to match background change
+            ambient.intensity = AMBIENT_BASE + (AMBIENT_END - AMBIENT_BASE) * bgProg;
+            key.intensity = KEY_BASE + (KEY_END - KEY_BASE) * bgProg;
+            rim.intensity = RIM_BASE + (RIM_END - RIM_BASE) * bgProg;
+            fill.intensity = FILL_BASE + (FILL_END - FILL_BASE) * bgProg;
+            for (let gi = 0; gi < grassMats.length; gi++) {
+                grassMats[gi].emissive.set('#1a2a10');
+                grassMats[gi].emissiveIntensity = 0.02 + bgProg * 0.25;
+            }
+            ground.material.opacity = 0.15 * (1 - bgProg * 0.7);
 
             updateGrass(curProg);
 
